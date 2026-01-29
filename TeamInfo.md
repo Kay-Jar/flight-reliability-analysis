@@ -4,16 +4,16 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-| TeamID      |        Team-000        |
-| TeamName    |         sample         |
-| Captain     |       Abdu Alawini     |
-| Captain     |  alawini@illinois.edu  |
-| Member1     |  Shadman Saqib Eusuf   |
-| Member1     |  seusuf2@illinois.edu  |
-| Member2     |     Aryaman Nasare     |
-| Member2     |  nasare2@illinois.edu  |
-| Member3     |                        |
-| Member3     |                        |
+| TeamID      |        Team-028        |
+| TeamName    |         blue         |
+| Captain     |       Noah Zhang     |
+| Captain     |  noah7@illinois.edu  |
+| Member1     |  Rachel Li   |
+| Member1     |  rli60@illinois.edu  |
+| Member2     |     Kayetan Jarzabek     |
+| Member2     |  kayetan2@illinois.edu  |
+| Member3     |  Gokul Sriramasubramanian |
+| Member3     |      gokul2@illinois.edu                  |
 
 ## Project Information
 
