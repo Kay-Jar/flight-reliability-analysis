@@ -19,10 +19,10 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
+|  Title      |       Flight Reliability Analysis Application (FRAA)     |
 | System URL  |      link_to_system    |
 | Video Link  |      link_to_video     |
 
 ## Project Summary
 
-This is a summary of the project!
+A Dockerized database application that allows users to inspect and analyze airline data. Users can filter and compare various metrics across airports, airline carriers, time periods, and delays. We transform the raw data that the federal government offers into meaningful analytics.
