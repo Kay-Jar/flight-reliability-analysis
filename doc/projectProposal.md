@@ -19,11 +19,11 @@ Our datasets come from the Bureau of Transportation Statistics (BTS) and the Tra
 	**User Interaction**  
 The end user will be able to interact with the application directly through a web browser interface. As such, the user will be able to select a specific airline, start and destination airports, date, and delay type. The application will perform SQL queries based on the user’s selection input and then generate the necessary interactive visualizations.  
 	**CRUD Operations**  
-Create: The user can create custom configs for their analysis through selected filters and criteria.  
-Read: The user will be able to retrieve and view a collection of flight data and summaries of airlines and airports.  
-		Update: The user can modify each individual query they make.  
-		Delete: The user can delete an individual query they make.  
-		Search: The user can search for an airline or airport by its specific code or name.  
+- **Create:** The user creates an analysis by selecting filters/groupings/metrics (airline, airports, date range, delay type, etc.) and can **save it as a named preset** (e.g., “ORD→LAX Delay Heatmap, 2023”). This preset is stored as a record in the database.
+- **Read:** The user can **list, load, and view saved presets** (and optionally a history of saved runs). When a preset is loaded, the backend **builds and executes the corresponding SQL** and renders the heatmap + summary stats.
+- **Update:** The user can **edit an existing saved preset** (change filters, metric, grouping, visualization options) and re-run it; the updated preset overwrites the stored record.
+- **Delete:** The user can **delete a saved preset** (and optionally delete saved run history entries) from the database.
+- **Search:** The user can search **airlines/airports** by code/name *and* search saved presets by preset name/tags (e.g., “Southwest”, “winter delays”, “ORD”).
 **Tech Stack**  
 Containerization and Deployment: **Docker** and **Docker Compose**. Docker is used for the app to be containerized and reproducible across machines. Docker compose for multi-container (PostgreSQL, Backend, Frontend)  
 Database: **PostgreSQL** for our database system. This will be our bulk CSV querying. It’s industry standard and is already strongly optimized for our massive dataset.  
