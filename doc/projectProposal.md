@@ -24,6 +24,7 @@ The end user will be able to interact with the application directly through a we
 - **Update:** The user can **edit an existing saved preset** (change filters, metric, grouping, visualization options) and re-run it; the updated preset overwrites the stored record.
 - **Delete:** The user can **delete a saved preset** (and optionally delete saved run history entries) from the database.
 - **Search:** The user can search **airlines/airports** by code/name *and* search saved presets by preset name/tags (e.g., “Southwest”, “winter delays”, “ORD”).
+
 **Tech Stack**  
 Containerization and Deployment: **Docker** and **Docker Compose**. Docker is used for the app to be containerized and reproducible across machines. Docker compose for multi-container (PostgreSQL, Backend, Frontend)  
 Database: **PostgreSQL** for our database system. This will be our bulk CSV querying. It’s industry standard and is already strongly optimized for our massive dataset.  
