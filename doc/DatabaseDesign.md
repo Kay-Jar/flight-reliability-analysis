@@ -1,3 +1,7 @@
+# Database Design
+
+## DDL Commands
+
 ```sql
 CREATE DATABASE IF NOT EXISTS flights;
 USE flights;
@@ -109,7 +113,11 @@ CREATE TABLE saved_preset (
 );
 ```
 
-## Query 1: Top 15 carriers by average arrival delay, only for carriers with above-average delay (JOIN + GROUP BY + Subquery)
+## Advanced Queries
+
+### Query 1: Top 15 carriers by average arrival delay, only for carriers with above-average delay
+
+**Concepts:** JOIN + GROUP BY + Subquery
 
 ```sql
 SELECT c.carrier, c.carrier_name,
@@ -126,7 +134,9 @@ ORDER BY avg_arr_delay DESC
 LIMIT 15;
 ```
 
-## Query 2: Airports that are top-15 busiest as either origin or destination (JOIN + GROUP BY + SET operator UNION)
+### Query 2: Airports that are top-15 busiest as either origin or destination
+
+**Concepts:** JOIN + GROUP BY + SET Operator (UNION)
 
 ```sql
 (SELECT a.airport, a.display_airport_name,
@@ -146,7 +156,9 @@ UNION
  LIMIT 15);
 ```
 
-## Query 3: Top 15 routes by total delay minutes broken down by delay type (JOIN multiple relations + GROUP BY + Subquery)
+### Query 3: Top 15 routes by total delay minutes broken down by delay type
+
+**Concepts:** JOIN (4 relations) + GROUP BY + Subquery
 
 ```sql
 SELECT origin.airport AS origin_code,
