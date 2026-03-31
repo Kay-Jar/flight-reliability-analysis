@@ -1,0 +1,333 @@
+1,Alaska,United States (Includes territories and possessions),United States,US,AK,Alaska,2.0,1
+2,Hawaii,United States (Includes territories and possessions),United States,US,HI,Hawaii,15.0,1
+3,Puerto Rico,United States (Includes territories and possessions),United States,US,PR,Puerto Rico,72.0,1
+4,U.S. Virgin Islands,United States (Includes territories and possessions),United States,US,VI,U.S. Virgin Islands,78.0,1
+5,U.S. Pacific Trust Territories and Possessions,United States (Includes territories and possessions),United States,US,TT,U.S. Pacific Trust Territories and Possessions,75.0,1
+11,Connecticut,United States (Includes territories and possessions),United States,US,CT,Connecticut,9.0,1
+12,Maine,United States (Includes territories and possessions),United States,US,ME,Maine,23.0,1
+13,Massachusetts,United States (Includes territories and possessions),United States,US,MA,Massachusetts,25.0,1
+14,New Hampshire,United States (Includes territories and possessions),United States,US,NH,New Hampshire,33.0,1
+15,Rhode Island,United States (Includes territories and possessions),United States,US,RI,Rhode Island,44.0,1
+16,Vermont,United States (Includes territories and possessions),United States,US,VT,Vermont,50.0,1
+21,New Jersey,United States (Includes territories and possessions),United States,US,NJ,New Jersey,34.0,1
+22,New York,United States (Includes territories and possessions),United States,US,NY,New York,36.0,1
+23,Pennsylvania,United States (Includes territories and possessions),United States,US,PA,Pennsylvania,42.0,1
+31,Delaware,United States (Includes territories and possessions),United States,US,DE,Delaware,10.0,1
+32,District of Columbia,United States (Includes territories and possessions),United States,US,DC,District of Columbia,11.0,1
+33,Florida,United States (Includes territories and possessions),United States,US,FL,Florida,12.0,1
+34,Georgia,United States (Includes territories and possessions),United States,US,GA,Georgia,13.0,1
+35,Maryland,United States (Includes territories and possessions),United States,US,MD,Maryland,24.0,1
+36,North Carolina,United States (Includes territories and possessions),United States,US,NC,North Carolina,37.0,1
+37,South Carolina,United States (Includes territories and possessions),United States,US,SC,South Carolina,45.0,1
+38,Virginia,United States (Includes territories and possessions),United States,US,VA,Virginia,51.0,1
+39,West Virginia,United States (Includes territories and possessions),United States,US,WV,West Virginia,54.0,1
+41,Illinois,United States (Includes territories and possessions),United States,US,IL,Illinois,17.0,1
+42,Indiana,United States (Includes territories and possessions),United States,US,IN,Indiana,18.0,1
+43,Michigan,United States (Includes territories and possessions),United States,US,MI,Michigan,26.0,1
+44,Ohio,United States (Includes territories and possessions),United States,US,OH,Ohio,39.0,1
+45,Wisconsin,United States (Includes territories and possessions),United States,US,WI,Wisconsin,55.0,1
+51,Alabama,United States (Includes territories and possessions),United States,US,AL,Alabama,1.0,1
+52,Kentucky,United States (Includes territories and possessions),United States,US,KY,Kentucky,21.0,1
+53,Mississippi,United States (Includes territories and possessions),United States,US,MS,Mississippi,28.0,1
+54,Tennessee,United States (Includes territories and possessions),United States,US,TN,Tennessee,47.0,1
+61,Iowa,United States (Includes territories and possessions),United States,US,IA,Iowa,19.0,1
+62,Kansas,United States (Includes territories and possessions),United States,US,KS,Kansas,20.0,1
+63,Minnesota,United States (Includes territories and possessions),United States,US,MN,Minnesota,27.0,1
+64,Missouri,United States (Includes territories and possessions),United States,US,MO,Missouri,29.0,1
+65,Nebraska,United States (Includes territories and possessions),United States,US,NE,Nebraska,31.0,1
+66,North Dakota,United States (Includes territories and possessions),United States,US,ND,North Dakota,38.0,1
+67,South Dakota,United States (Includes territories and possessions),United States,US,SD,South Dakota,46.0,1
+71,Arkansas,United States (Includes territories and possessions),United States,US,AR,Arkansas,5.0,1
+72,Louisiana,United States (Includes territories and possessions),United States,US,LA,Louisiana,22.0,1
+73,Oklahoma,United States (Includes territories and possessions),United States,US,OK,Oklahoma,40.0,1
+74,Texas,United States (Includes territories and possessions),United States,US,TX,Texas,48.0,1
+81,Arizona,United States (Includes territories and possessions),United States,US,AZ,Arizona,4.0,1
+82,Colorado,United States (Includes territories and possessions),United States,US,CO,Colorado,8.0,1
+83,Idaho,United States (Includes territories and possessions),United States,US,ID,Idaho,16.0,1
+84,Montana,United States (Includes territories and possessions),United States,US,MT,Montana,30.0,1
+85,Nevada,United States (Includes territories and possessions),United States,US,NV,Nevada,32.0,1
+86,New Mexico,United States (Includes territories and possessions),United States,US,NM,New Mexico,35.0,1
+87,Utah,United States (Includes territories and possessions),United States,US,UT,Utah,49.0,1
+88,Wyoming,United States (Includes territories and possessions),United States,US,WY,Wyoming,56.0,1
+91,California,United States (Includes territories and possessions),United States,US,CA,California,6.0,1
+92,Oregon,United States (Includes territories and possessions),United States,US,OR,Oregon,41.0,1
+93,Washington,United States (Includes territories and possessions),United States,US,WA,Washington,53.0,1
+106,Belize,Middle America,British Honduras - UK,BZ,,,,0
+110,Costa Rica,Middle America,Costa Rica,CR,,,,1
+118,El Salvador,Middle America,El Salvador,SV,,,,1
+127,Guatemala,Middle America,Guatemala,GT,,,,1
+131,Honduras,Middle America,Honduras,HN,,,,1
+148,Mexico,Middle America,Mexico,MX,,,,1
+153,Nicaragua,Middle America,Nicaragua,NI,,,,1
+160,Panama Canal Zone,Middle America,Panama,PA,,,,1
+162,Panama,Middle America,Panama,PA,,,,1
+174,San Andres Island,Middle America,Colombia,CO,,,,1
+202,Anguilla,Caribbean - Bahamas - and Bermuda,Anguilla,AI,,,,1
+204,Bahamas,Caribbean - Bahamas - and Bermuda,The Bahamas,BS,,,,1
+205,Barbados,Caribbean - Bahamas - and Bermuda,Barbados,BB,,,,1
+206,Antigua and Barbuda,Caribbean - Bahamas - and Bermuda,Antigua and Barbuda,AG,,,,1
+207,Bermuda,Caribbean - Bahamas - and Bermuda,Bermuda,BM,,,,1
+209,Carriacou,Caribbean - Bahamas - and Bermuda,Carriacou,,,,,1
+219,Cuba,Caribbean - Bahamas - and Bermuda,Cuba,CU,,,,1
+221,Dominica,Caribbean - Bahamas - and Bermuda,Dominica,DM,,,,1
+224,Dominican Republic,Caribbean - Bahamas - and Bermuda,Dominican Republic,DO,,,,1
+233,Cayman Islands,Caribbean - Bahamas - and Bermuda,Cayman Islands,KY,,,,1
+234,Grand Turk,Caribbean - Bahamas - and Bermuda,Turks and Caicos Islands,TC,,,,1
+235,Guadeloupe,Caribbean - Bahamas - and Bermuda,Guadeloupe,GP,,,,1
+236,Saint Martin,Caribbean - Bahamas - and Bermuda,Saint Martin,MF,,,,1
+237,Saint Barthelemy,Caribbean - Bahamas - and Bermuda,Saint Barthelemy,BL,,,,1
+238,Haiti,Caribbean - Bahamas - and Bermuda,Haiti,HT,,,,1
+243,Jamaica,Caribbean - Bahamas - and Bermuda,Jamaica,JM,,,,1
+252,Martinique,Caribbean - Bahamas - and Bermuda,Martinique,MQ,,,,1
+256,Montserrat,Caribbean - Bahamas - and Bermuda,Montserrat,MS,,,,1
+257,Mustique,Caribbean - Bahamas - and Bermuda,Saint Vincent and the Grenadines,VC,,,,1
+259,Netherlands Antilles,Caribbean - Bahamas - and Bermuda,Netherlands Antilles,AN,,,,1
+260,Bonaire - Sint Eustatius - and Saba,Caribbean - Bahamas - and Bermuda,Bonaire - Sint Eustatius - and Saba,BQ,,,,1
+261,St. Kitts and Nevis - UK,Caribbean - Bahamas - and Bermuda,Saint Kitts and Nevis - UK,,,,,1
+262,Curacao,Caribbean - Bahamas - and Bermuda,Curacao,CW,,,,1
+264,Sint Maarten,Caribbean - Bahamas - and Bermuda,Sint Maarten,SX,,,,1
+267,Providenciales,Caribbean - Bahamas - and Bermuda,Turks and Caicos Islands,TC,,,,1
+268,Puerto Rico,Caribbean - Bahamas - and Bermuda,Puerto Rico,PR,,,,1
+273,Grenada and South Grenadines,Caribbean - Bahamas - and Bermuda,Grenada,GD,,,,1
+274,Antigua and Barbuda - UK,Caribbean - Bahamas - and Bermuda,Antigua and Barbuda - UK,,,,,1
+275,St. Kitts and Nevis,Caribbean - Bahamas - and Bermuda,Saint Kitts and Nevis,KN,,,,1
+276,St. Lucia,Caribbean - Bahamas - and Bermuda,Saint Lucia,LC,,,,1
+277,Aruba,Caribbean - Bahamas - and Bermuda,Aruba,AW,,,,1
+279,St. Vincent and North Grenadines,Caribbean - Bahamas - and Bermuda,Saint Vincent and the Grenadines,VC,,,,1
+280,Trinidad and Tobago,Caribbean - Bahamas - and Bermuda,Trinidad and Tobago,TT,,,,1
+281,Turks and Caicos Islands,Caribbean - Bahamas - and Bermuda,Turks and Caicos Islands,TC,,,,1
+282,British Virgin Islands,Caribbean - Bahamas - and Bermuda,British Virgin Islands,VG,,,,1
+283,U.S. Virgin Islands,Caribbean - Bahamas - and Bermuda,Virgin Islands,VI,,,,1
+303,Argentina,South America,Argentina,AR,,,,1
+312,Bolivia,South America,Bolivia,BO,,,,1
+316,Brazil,South America,Brazil,BR,,,,1
+324,Chile,South America,Chile,CL,,,,1
+327,Colombia,South America,Colombia,CO,,,,1
+337,Ecuador,South America,Ecuador,EC,,,,1
+340,Falkland Islands,South America,Falkland Islands (Islas Malvinas),FK,,,,1
+344,French Guiana,South America,French Guiana,GF,,,,1
+350,Guyana,South America,Guyana,GY,,,,1
+365,Paraguay,South America,Paraguay,PY,,,,1
+368,Peru,South America,Peru,PE,,,,1
+379,Suriname,South America,Suriname,SR,,,,1
+385,Uruguay,South America,Uruguay,UY,,,,1
+388,Venezuela,South America,Venezuela,VE,,,,1
+401,Albania,Europe,Albania,AL,,,,1
+402,Andorra,Europe,Andorra,AD,,,,1
+403,Austria,Europe,Austria,AT,,,,1
+405,Armenia,Europe,Armenia,AM,,,,1
+407,Azerbaijan,Europe,Azerbaijan,AZ,,,,1
+409,Belgium,Europe,Belgium,BE,,,,1
+410,Bosnia and Herzegovina,Europe,Bosnia and Herzegovina,BA,,,,1
+411,Bulgaria,Europe,Bulgaria,BG,,,,1
+413,Belarus,Europe,Belarus,BY,,,,1
+415,Croatia,Europe,Croatia,HR,,,,1
+417,Czechoslovakia,Europe,Czechoslovakia,,,,,1
+418,Czech Republic,Europe,Czech Republic,CZ,,,,1
+419,Denmark,Europe,Denmark,DK,,,,1
+422,Estonia,Europe,Estonia,EE,,,,1
+425,Finland,Europe,Finland,FI,,,,1
+427,France,Europe,France,FR,,,,1
+428,East Germany,Europe,East Germany,DD,,,,1
+429,Germany,Europe,West Germany,DE,,,,0
+430,Berlin,Europe,Berlin,,,,,1
+431,Gibraltar,Europe,Gibraltar,GI,,,,1
+432,Georgia,Europe,Georgia,GE,,,,1
+433,Greece,Europe,Greece,GR,,,,1
+437,Hungary,Europe,Hungary,HU,,,,0
+439,Iceland,Europe,Iceland,IS,,,,1
+441,Ireland,Europe,Ireland,IE,,,,1
+450,Italy,Europe,Italy,IT,,,,1
+451,Latvia,Europe,Latvia,LV,,,,1
+452,Lithuania,Europe,Lithuania,LT,,,,1
+453,Liechtenstein,Europe,Liechtenstein,LI,,,,1
+454,Luxembourg,Europe,Luxembourg,LU,,,,1
+455,Macedonia,Europe,Macedonia,MK,,,,1
+456,Malta,Europe,Malta,MT,,,,1
+457,Moldova,Europe,Moldova,MD,,,,1
+458,Monaco,Europe,Monaco,MC,,,,1
+459,Montenegro,Europe,FRY,YU,,,,0
+461,Netherlands,Europe,Netherlands,NL,,,,1
+465,Norway,Europe,Norway,NO,,,,1
+467,Poland,Europe,Poland,PL,,,,1
+469,Portugal,Europe,Portugal,PT,,,,1
+473,Romania,Europe,Romania,RO,,,,1
+475,Russia (European Part),Europe,Russia,RU,,,,1
+477,Serbia and Montenegro,Europe,Serbia and Montenegro,CS,,,,1
+479,San Marino,Europe,San Marino,SM,,,,1
+480,Serbia,Europe,FRY,YU,,,,0
+481,Slovenia,Europe,Slovenia,SI,,,,1
+482,Spain,Europe,Spain,ES,,,,1
+483,Slovakia,Europe,Slovakia,SK,,,,1
+484,Sweden,Europe,Sweden,SE,,,,1
+486,Switzerland,Europe,Switzerland,CH,,,,1
+488,Ukraine,Europe,Ukraine,UA,,,,1
+489,U.S.S.R. (European Part),Europe,U.S.S.R.,SU,,,,1
+493,United Kingdom,Europe,United Kingdom,GB,,,,1
+494,Kosovo,Europe,Kosovo,KV,,,,1
+497,Yugoslavia,Europe,Yugoslavia,YU,,,,0
+500,Algeria,Africa,Algeria,DZ,,,,1
+501,South Sudan,Africa,South Sudan,SS,,,,1
+502,Angola,Africa,Angola,AO,,,,1
+503,Burundi,Africa,Burundi,BI,,,,1
+504,Cameroon,Africa,Cameroon,CM,,,,1
+506,Canary Island,Africa,Spain,ES,,,,1
+507,Cape Verde Islands,Africa,Cape Verde,CV,,,,1
+509,Central African Republic,Africa,Central African Republic,CF,,,,1
+510,Botswana,Africa,Botswana,BW,,,,1
+511,Chad,Africa,Chad,TD,,,,1
+513,Comoros,Africa,Comoros,KM,,,,1
+515,Republic of the Congo,Africa,Congo (Brazaville),CG,,,,1
+517,Democratic Republic of the Congo,Africa,Congo (Kinshasa),CD,,,,1
+519,Benin,Africa,Benin,BJ,,,,1
+521,Equatorial Guinea,Africa,Equatorial Guinea,GQ,,,,1
+522,Ethiopia,Africa,Ethiopia,ET,,,,1
+523,Eritrea,Africa,Eritrea,ER,,,,1
+525,Djibouti,Africa,Djibouti,DJ,,,,1
+526,Gabon,Africa,Gabon,GA,,,,1
+527,The Gambia,Africa,The Gambia,GM,,,,1
+529,Ghana,Africa,Ghana,GH,,,,1
+531,Guinea,Africa,Guinea,GN,,,,1
+533,Cote d'Ivoire,Africa,Cote d'Ivoire,CI,,,,1
+535,Kenya,Africa,Kenya,KE,,,,1
+536,Lesotho,Africa,Lesotho,LS,,,,1
+537,Liberia,Africa,Liberia,LR,,,,1
+538,Libya,Africa,Libya,LY,,,,0
+540,Madeira Islands,Africa,Portugal,PT,,,,1
+541,Madagascar,Africa,Madagascar,MG,,,,1
+542,Malawi,Africa,Malawi,MW,,,,1
+543,Mali,Africa,Mali,ML,,,,1
+545,Mauritania,Africa,Mauritania,MR,,,,1
+546,Mauritius,Africa,Mauritius,MU,,,,1
+547,Mayotte,Africa,Mayotte,YT,,,,1
+548,Morocco,Africa,Morocco,MA,,,,1
+550,Mozambique,Africa,Mozambique,MZ,,,,1
+554,Niger,Africa,Niger,NE,,,,1
+555,Nigeria,Africa,Nigeria,NG,,,,1
+559,Guinea-Bissau,Africa,Guinea-Bissau,GW,,,,1
+562,South Africa,Africa,South Africa,ZA,,,,1
+563,Reunion Island,Africa,Reunion,RE,,,,1
+565,Zimbabwe,Africa,Zimbabwe,ZW,,,,1
+566,Rwanda,Africa,Rwanda,RW,,,,1
+567,Sao Tome and Principe,Africa,Sao Tome and Principe,ST,,,,1
+568,Rodrigues Islands,Africa,Mauritius,MU,,,,1
+569,Senegal,Africa,Senegal,SN,,,,1
+570,Seychelles Islands,Africa,Seychelles,SC,,,,1
+571,Sierra Leone,Africa,Sierra Leone,SL,,,,1
+573,Somalia,Africa,Somalia,SO,,,,1
+575,Namibia,Africa,Namibia,,,,,1
+580,Saint Helena - Ascension - and Tristan da Cunha,Africa,Saint Helena - Ascension - and Tristan da Cunha,SH,,,,1
+582,Swaziland,Africa,Swaziland,SZ,,,,1
+583,Sudan,Africa,Sudan,SD,,,,1
+585,Tanzania,Africa,Tanzania,TZ,,,,1
+586,Togo,Africa,Togo,TG,,,,1
+588,Tunisia,Africa,Tunisia,TN,,,,1
+590,Uganda,Africa,Uganda,UG,,,,1
+591,Egypt,Africa,Egypt,EG,,,,1
+593,Upper Volta,Africa,Upper Volta,HV,,,,0
+597,Zambia,Africa,Zambia,ZM,,,,1
+599,Rhodesia,Africa,Rhodesia,,,,,1
+605,Bahrain,Middle East,Bahrain,BH,,,,1
+611,Cyprus,Middle East,Cyprus,CY,,,,1
+632,Iran,Middle East,Iran,IR,,,,0
+634,Iraq,Middle East,Iraq,IQ,,,,1
+636,Israel,Middle East,Israel,IL,,,,1
+639,Jordan,Middle East,Jordan,JO,,,,1
+644,Kuwait,Middle East,Kuwait,KW,,,,1
+647,Lebanon,Middle East,Lebanon,LB,,,,1
+658,Oman,Middle East,Oman,OM,,,,1
+664,Qatar,Middle East,Qatar,QA,,,,1
+667,People's Democratic Republic of Yemen,Middle East,South Yemen,YD,,,,1
+670,Saudi Arabia,Middle East,Saudi Arabia,SA,,,,1
+676,Syria,Middle East,Syria,SY,,,,1
+678,United Arab Emirates,Middle East,United Arab Emirates,AE,,,,1
+679,Turkey,Middle East,Turkey,TR,,,,1
+694,Yemen,Middle East,North Yemen,YE,,,,0
+701,Afghanistan,Far East,Afghanistan,AF,,,,1
+702,Bhutan,Far East,Bhutan,BT,,,,1
+703,Bangladesh,Far East,Bangladesh,BD,,,,1
+704,Brunei,Far East,Brunei,BN,,,,1
+705,Bonin Islands,Far East,Bonin Islands,,,,,1
+706,Myanmar,Far East,Burma,MM,,,,1
+707,British Indian Ocean Territory,Far East,British Indian Ocean Territory,IO,,,,1
+709,Cambodia,Far East,Cambodia,KH,,,,1
+711,Sri Lanka,Far East,Sri Lanka,LK,,,,1
+713,China,Far East,China,CN,,,,1
+729,Hong Kong,Far East,Hong Kong,HK,,,,1
+733,India,Far East,India,IN,,,,1
+736,Japan,Far East,Japan,JP,,,,1
+738,Kazakhstan,Far East,Kazakhstan,KZ,,,,1
+743,Kyrgyzstan,Far East,Kyrgyzstan,KG,,,,1
+744,Laos,Far East,Laos,LA,,,,1
+747,Macau,Far East,Macau,MO,,,,1
+749,Malaysia,Far East,Malaysia,MY,,,,1
+750,Maldives,Far East,Maldives,MV,,,,1
+751,Mongolia,Far East,Mongolia,MN,,,,1
+755,Nepal,Far East,Nepal,NP,,,,1
+757,North Korea,Far East,North Korea,KP,,,,1
+759,North Vietnam,Far East,Vietnam,VN,,,,1
+761,Okinawa/Ryukyu Islands,Far East,Okinawa/Ryukyu Islands,,,,,1
+764,Pakistan,Far East,Pakistan,PK,,,,1
+766,Philippines,Far East,Philippines,PH,,,,1
+770,Russia (Asian Part),Far East,Russia,RU,,,,1
+776,Singapore,Far East,Singapore,SG,,,,1
+778,South Korea,Far East,South Korea,KR,,,,1
+780,South Vietnam,Far East,Vietnam,VN,,,,1
+781,Taiwan,Far East,Taiwan,TW,,,,1
+782,Thailand,Far East,Thailand,TH,,,,1
+783,Tajikistan,Far East,Tajikistan,TJ,,,,1
+785,Turkmenistan,Far East,Turkmenistan,TM,,,,1
+786,U.S.S.R. (Asian Part),Far East,U.S.S.R.,SU,,,,1
+788,Uzbekistan,Far East,Uzbekistan,UZ,,,,1
+791,Vietnam,Far East,Vietnam,VN,,,,1
+800,American Samoa,Far East,American Samoa,AS,,,,1
+801,Antarctica,Australasia and Oceania,Antarctica,AQ,,,,1
+802,Australia,Australasia and Oceania,Australia,AU,,,,1
+803,Christmas Island,Australasia and Oceania,Christmas Island,CX,,,,1
+804,Papua New Guinea,Australasia and Oceania,Papua New Guinea,PG,,,,1
+809,Palau Islands,Australasia and Oceania,Palau District (TTPI),,,,,1
+810,Federated States of Micronesia,Australasia and Oceania,Federated States of Micronesia,FM,,,,1
+812,Cocos (Keeling) Islands,Australasia and Oceania,Cocos (Keeling) Islands,CC,,,,1
+813,Cook Islands,Australasia and Oceania,Cook Islands,CK,,,,1
+817,Tuvalu,Australasia and Oceania,Tuvalu,TV,,,,1
+821,Fiji Islands,Australasia and Oceania,Fiji,FJ,,,,1
+823,French Polynesia,Australasia and Oceania,French Polynesia,PF,,,,1
+824,Kiribati,Australasia and Oceania,Kiribati,KI,,,,1
+826,Guam,Australasia and Oceania,Guam,GU,,,,1
+832,Indonesia,Australasia and Oceania,Indonesia,ID,,,,1
+834,Johnston Island,Australasia and Oceania,Johnston Atoll,,,,,1
+840,Loyalty Islands,Australasia and Oceania,New Caledonia,NC,,,,1
+841,Northern Mariana Islands,Australasia and Oceania,Northern Mariana Islands,MP,,,,1
+842,Midway Islands,Australasia and Oceania,Midway Islands,,,,,1
+843,Marshall Islands,Australasia and Oceania,Marshall Islands District (TTPI),,,,,1
+844,Marshall Islands,Australasia and Oceania,Marshall Islands,MH,,,,1
+845,Nauru,Australasia and Oceania,Nauru,NR,,,,1
+846,New Caledonia,Australasia and Oceania,New Caledonia,NC,,,,1
+849,New Hebrides,Australasia and Oceania,New Hebrides,,,,,1
+851,New Zealand,Australasia and Oceania,New Zealand,NZ,,,,1
+852,Niue,Australasia and Oceania,Niue,NU,,,,1
+853,Norfolk Island,Australasia and Oceania,Norfolk Island,NF,,,,1
+854,Palau,Australasia and Oceania,Palau,PW,,,,1
+861,East Timor,Australasia and Oceania,East Timor,TP,,,,1
+862,Timor-Leste,Australasia and Oceania,Timor-Leste,TL,,,,1
+874,Solomon Islands,Australasia and Oceania,Solomon Islands,SB,,,,1
+881,Tonga,Australasia and Oceania,Tonga,TO,,,,1
+885,Vanuatu,Australasia and Oceania,Vanuatu,VU,,,,1
+888,Wake Island,Australasia and Oceania,Wake Island,,,,,1
+890,Wallis and Futuna Islands,Australasia and Oceania,Wallis and Futuna,WF,,,,1
+892,Samoa,Australasia and Oceania,Samoa,WS,,,,1
+906,British Columbia,Canada and Greenland,Canada,CA,BC,British Columbia,,1
+911,Yukon Territory,Canada and Greenland,Canada,CA,YT,Yukon Territory,,1
+916,Alberta,Canada and Greenland,Canada,CA,AB,Alberta,,1
+921,Saskatchewan,Canada and Greenland,Canada,CA,SK,Saskatchewan,,1
+926,Manitoba,Canada and Greenland,Canada,CA,MB,Manitoba,,1
+931,Northwest Territories,Canada and Greenland,Canada,CA,NT,Northwest Territories,,1
+934,Nunavut Territory,Canada and Greenland,Canada,CA,NU,Nunavut Territory,,1
+936,Ontario,Canada and Greenland,Canada,CA,ON,Ontario,,1
+941,Quebec,Canada and Greenland,Canada,CA,QC,Quebec,,1
+946,New Brunswick,Canada and Greenland,Canada,CA,NB,New Brunswick,,1
+951,Nova Scotia,Canada and Greenland,Canada,CA,NS,Nova Scotia,,1
+956,Prince Edward Island,Canada and Greenland,Canada,CA,PE,Prince Edward Island,,1
+961,Newfoundland and Labrador,Canada and Greenland,Canada,CA,NL,Newfoundland and Labrador,,1
+975,Greenland,Canada and Greenland,Greenland,GL,,,,1
+977,Saint Pierre and Miquelon,Canada and Greenland,Saint Pierre and Miquelon,PM,,,,1
