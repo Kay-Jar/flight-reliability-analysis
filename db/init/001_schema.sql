@@ -1,4 +1,5 @@
-CREATE TABLE dim_wac (
+CREATE TABLE dim_wac 
+(
     wac INT PRIMARY KEY,
     wac_name VARCHAR(100),
     world_area_name VARCHAR(200),
@@ -20,7 +21,8 @@ CREATE TABLE dim_date (
     day_of_week INT
 );
 
-CREATE TABLE dim_airport (
+CREATE TABLE dim_airport 
+(
     airport_id INT PRIMARY KEY,
     airport VARCHAR(10),
     display_airport_name VARCHAR(200),
@@ -38,7 +40,8 @@ CREATE TABLE dim_airport (
         FOREIGN KEY (airport_wac) REFERENCES dim_wac(wac)
 );
 
-CREATE TABLE dim_carrier (
+CREATE TABLE dim_carrier 
+(
     airline_id INT PRIMARY KEY,
     carrier VARCHAR(10),
     carrier_name VARCHAR(200),
@@ -51,12 +54,14 @@ CREATE TABLE dim_carrier (
         FOREIGN KEY (wac) REFERENCES dim_wac(wac)
 );
 
-CREATE TABLE dim_delay_type (
+CREATE TABLE dim_delay_type 
+(
     delay_type_id INT PRIMARY KEY,
     delay_type_name VARCHAR(50)
 );
 
-CREATE TABLE fact_flight (
+CREATE TABLE fact_flight 
+(
     flight_id BIGINT PRIMARY KEY,
     date_id INT,
     mkt_carrier_airline_id INT,
@@ -86,7 +91,8 @@ CREATE TABLE fact_flight (
         FOREIGN KEY (dest_wac) REFERENCES dim_wac(wac)
 );
 
-CREATE TABLE fact_flight_delay (
+CREATE TABLE fact_flight_delay 
+(
     flight_id BIGINT,
     delay_type_id INT,
     delay_minutes NUMERIC(10,2),
@@ -99,7 +105,8 @@ CREATE TABLE fact_flight_delay (
         CHECK (delay_minutes > 0)
 );
 
-CREATE TABLE saved_preset (
+CREATE TABLE saved_preset 
+(
     preset_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     preset_name VARCHAR(200),
     filters_json TEXT,
