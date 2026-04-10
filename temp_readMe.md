@@ -1,4 +1,6 @@
 git clone https://github.com/cs411-alawini/sp26-cs411-team028-blue.git
+^ messing with oauth just download zip to avoid it.
+
 cd sp26-cs411-team028-blue
 
 docker compose up -d
