@@ -24,21 +24,21 @@ import { useSelector, useDispatch } from 'react-redux'
 
 import {
   CCloseButton,
+  CForm,
+  CFormCheck,
+  CFormInput,
+  CFormLabel,
   CSidebar,
   CSidebarBrand,
   CSidebarFooter,
   CSidebarHeader,
+  CSidebarNav,
   CSidebarToggler,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 
-import { AppSidebarNav } from './AppSidebarNav'
-
 import { logo } from 'src/assets/brand/logo'
 import { sygnet } from 'src/assets/brand/sygnet'
-
-// sidebar nav config
-import navigation from '../_nav'
 
 /**
  * AppSidebar functional component
@@ -79,7 +79,48 @@ const AppSidebar = () => {
           onClick={() => dispatch({ type: 'set', sidebarShow: false })}
         />
       </CSidebarHeader>
-      <AppSidebarNav items={navigation} />
+      <CSidebarNav className="px-3 py-3">
+        <CForm>
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Airlines</CFormLabel>
+            <CFormCheck id="airline-delta" label="Delta" defaultChecked />
+            <CFormCheck id="airline-united" label="United" defaultChecked />
+            <CFormCheck id="airline-southwest" label="Southwest" defaultChecked />
+            <CFormCheck id="airline-american" label="American" />
+            <CFormCheck id="airline-jetblue" label="JetBlue" />
+          </div>
+
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Airports</CFormLabel>
+            <CFormCheck id="airport-atl" label="ATL" defaultChecked />
+            <CFormCheck id="airport-ord" label="ORD" defaultChecked />
+            <CFormCheck id="airport-den" label="DEN" />
+            <CFormCheck id="airport-lax" label="LAX" />
+            <CFormCheck id="airport-jfk" label="JFK" />
+          </div>
+
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Delay Types</CFormLabel>
+            <CFormCheck id="delay-weather" label="Weather" defaultChecked />
+            <CFormCheck id="delay-aircraft" label="Aircraft" defaultChecked />
+            <CFormCheck id="delay-carrier" label="Carrier" />
+            <CFormCheck id="delay-nas" label="NAS" />
+            <CFormCheck id="delay-security" label="Security" />
+          </div>
+
+          <div className="mb-2">
+            <CFormLabel className="fw-semibold mb-2">Date Range</CFormLabel>
+            <CFormInput size="sm" type="text" placeholder="Start date (placeholder)" disabled />
+            <CFormInput
+              size="sm"
+              type="text"
+              className="mt-2"
+              placeholder="End date (placeholder)"
+              disabled
+            />
+          </div>
+        </CForm>
+      </CSidebarNav>
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
           onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}

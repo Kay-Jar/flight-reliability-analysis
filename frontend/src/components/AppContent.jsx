@@ -55,7 +55,8 @@ const AppContent = () => {
               )
             )
           })}
-          <Route path="/" element={<Navigate to="dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/heatmap" replace />} />
+          <Route path="*" element={<Navigate to="/heatmap" replace />} />
         </Routes>
       </Suspense>
     </CContainer>
