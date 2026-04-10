@@ -39,6 +39,21 @@ import CIcon from '@coreui/icons-react'
 
 import { logo } from 'src/assets/brand/logo'
 import { sygnet } from 'src/assets/brand/sygnet'
+import { useFilters } from '../context/FiltersContext'
+
+const airlineOptions = [
+  'Delta Air Lines Inc.',
+  'United Air Lines Inc.',
+  'Southwest Airlines Co.',
+  'American Airlines Inc.',
+  'JetBlue Airways',
+]
+const airportOptions = ['ATL', 'ORD', 'DEN', 'LAX', 'JFK']
+const delayTypeOptions = ['Weather', 'Aircraft', 'Carrier', 'NAS', 'Security']
+
+const toggleValue = (values, value) => {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
+}
 
 /**
  * AppSidebar functional component
@@ -56,6 +71,14 @@ const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const { filters, setFilters } = useFilters()
+
+  const updateFilters = (updates) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      ...updates,
+    }))
+  }
 
   return (
     <CSidebar
@@ -83,40 +106,69 @@ const AppSidebar = () => {
         <CForm>
           <div className="mb-4">
             <CFormLabel className="fw-semibold mb-2">Airlines</CFormLabel>
-            <CFormCheck id="airline-delta" label="Delta" defaultChecked />
-            <CFormCheck id="airline-united" label="United" defaultChecked />
-            <CFormCheck id="airline-southwest" label="Southwest" defaultChecked />
-            <CFormCheck id="airline-american" label="American" />
-            <CFormCheck id="airline-jetblue" label="JetBlue" />
+            {airlineOptions.map((airline) => (
+              <CFormCheck
+                key={airline}
+                id={`airline-${airline.toLowerCase()}`}
+                label={airline}
+                checked={filters.airlines.includes(airline)}
+                onChange={() =>
+                  updateFilters({
+                    airlines: toggleValue(filters.airlines, airline),
+                  })
+                }
+              />
+            ))}
           </div>
 
           <div className="mb-4">
             <CFormLabel className="fw-semibold mb-2">Airports</CFormLabel>
-            <CFormCheck id="airport-atl" label="ATL" defaultChecked />
-            <CFormCheck id="airport-ord" label="ORD" defaultChecked />
-            <CFormCheck id="airport-den" label="DEN" />
-            <CFormCheck id="airport-lax" label="LAX" />
-            <CFormCheck id="airport-jfk" label="JFK" />
+            {airportOptions.map((airport) => (
+              <CFormCheck
+                key={airport}
+                id={`airport-${airport.toLowerCase()}`}
+                label={airport}
+                checked={filters.airports.includes(airport)}
+                onChange={() =>
+                  updateFilters({
+                    airports: toggleValue(filters.airports, airport),
+                  })
+                }
+              />
+            ))}
           </div>
 
           <div className="mb-4">
             <CFormLabel className="fw-semibold mb-2">Delay Types</CFormLabel>
-            <CFormCheck id="delay-weather" label="Weather" defaultChecked />
-            <CFormCheck id="delay-aircraft" label="Aircraft" defaultChecked />
-            <CFormCheck id="delay-carrier" label="Carrier" />
-            <CFormCheck id="delay-nas" label="NAS" />
-            <CFormCheck id="delay-security" label="Security" />
+            {delayTypeOptions.map((delayType) => (
+              <CFormCheck
+                key={delayType}
+                id={`delay-${delayType.toLowerCase()}`}
+                label={delayType}
+                checked={filters.delay_types.includes(delayType)}
+                onChange={() =>
+                  updateFilters({
+                    delay_types: toggleValue(filters.delay_types, delayType),
+                  })
+                }
+              />
+            ))}
           </div>
 
           <div className="mb-2">
             <CFormLabel className="fw-semibold mb-2">Date Range</CFormLabel>
-            <CFormInput size="sm" type="text" placeholder="Start date (placeholder)" disabled />
             <CFormInput
               size="sm"
-              type="text"
+              type="date"
+              value={filters.start_date}
+              onChange={(event) => updateFilters({ start_date: event.target.value })}
+            />
+            <CFormInput
+              size="sm"
+              type="date"
+              value={filters.end_date}
+              onChange={(event) => updateFilters({ end_date: event.target.value })}
               className="mt-2"
-              placeholder="End date (placeholder)"
-              disabled
             />
           </div>
         </CForm>
