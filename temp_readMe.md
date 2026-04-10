@@ -7,6 +7,8 @@ docker compose up -d
 
 docker ps
 
+pip install -r requirements.txt
+
 cd sp26-cs411-team028-blue\backend
 python -m uvicorn app.main:app --reload --port 8011
 
