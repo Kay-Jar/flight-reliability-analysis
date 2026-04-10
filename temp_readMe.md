@@ -19,6 +19,8 @@ NEW WINDOW
 
 cd sp26-cs411-team028-blue\frontend
 
+MAKE SURE Node.js is up to date!!!
+
 npm.cmd install
 
 npm.cmd start
