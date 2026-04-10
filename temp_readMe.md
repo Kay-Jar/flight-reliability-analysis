@@ -8,6 +8,7 @@ docker compose up -d
 docker ps
 
 python db\loaders\load_facts.py
+
 python db\loaders\load_dimensions.py
 
 
