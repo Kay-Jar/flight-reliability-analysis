@@ -7,11 +7,15 @@ docker compose up -d
 
 docker ps
 
-pip install -r requirements.txt
 
 cd sp26-cs411-team028-blue\backend
+pip install -r requirements.txt
+
+
 python -m uvicorn app.main:app --reload --port 8011
 
+
+NEW WINDOW
 cd sp26-cs411-team028-blue\frontend
 npm.cmd install
 npm.cmd start
