@@ -7,7 +7,7 @@ const defaultFilters = {
   start_date: '',
   end_date: '',
   metric: 'avg_arr_delay',
-  view: 'carrier',
+  view: 'heatmap',
 }
 
 const FiltersContext = createContext(null)

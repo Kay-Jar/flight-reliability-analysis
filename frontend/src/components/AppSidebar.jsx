@@ -30,16 +30,12 @@ import {
   CFormLabel,
   CSidebar,
   CSidebarBrand,
-  CSidebarFooter,
   CSidebarHeader,
   CSidebarNav,
-  CSidebarToggler,
 } from '@coreui/react'
-import CIcon from '@coreui/icons-react'
 
-import { logo } from 'src/assets/brand/logo'
-import { sygnet } from 'src/assets/brand/sygnet'
 import { useFilters } from '../context/FiltersContext'
+import teamBlueLogo from '../assets/images/TeamBlueLogoCropped.png'
 
 const airlineOptions = [
   'Delta Air Lines Inc.',
@@ -91,10 +87,13 @@ const AppSidebar = () => {
         dispatch({ type: 'set', sidebarShow: visible })
       }}
     >
-      <CSidebarHeader className="border-bottom">
-        <CSidebarBrand to="/">
-          <CIcon customClassName="sidebar-brand-full" icon={logo} height={32} />
-          <CIcon customClassName="sidebar-brand-narrow" icon={sygnet} height={32} />
+      <CSidebarHeader className="border-bottom py-1">
+        <CSidebarBrand to="/" className="justify-content-center align-items-center px-0 py-0">
+          <img
+            src={teamBlueLogo}
+            alt="Team Blue"
+            style={{ maxHeight: '48px', width: 'auto', objectFit: 'contain', display: 'block' }}
+          />
         </CSidebarBrand>
         <CCloseButton
           className="d-lg-none"
@@ -173,11 +172,6 @@ const AppSidebar = () => {
           </div>
         </CForm>
       </CSidebarNav>
-      <CSidebarFooter className="border-top d-none d-lg-flex">
-        <CSidebarToggler
-          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
-        />
-      </CSidebarFooter>
     </CSidebar>
   )
 }

@@ -25,19 +25,11 @@ ALLOWED_METRICS = {
 
 ALLOWED_VIEWS = {
     'carrier': 'dc.carrier_name',
+    'heatmap': 'heatmap',
 }
 
 
-def _build_query(filters: AnalysisQueryRequest):
-    selected_metric = filters.metric if filters.metric in ALLOWED_METRICS else 'avg_arr_delay'
-    selected_view = filters.view if filters.view in ALLOWED_VIEWS else 'carrier'
-
-    select_columns = [
-        'dc.carrier_name AS carrier_name',
-        'ROUND(AVG(ff.arr_delay)::numeric, 2) AS avg_arr_delay',
-        'COUNT(*) AS total_flights',
-    ]
-
+def _build_filter_clauses(filters: AnalysisQueryRequest):
     where_clauses = ['ff.arr_delay IS NOT NULL']
     params: dict[str, object] = {}
 
@@ -69,6 +61,21 @@ def _build_query(filters: AnalysisQueryRequest):
         where_clauses.append('dd.full_date <= :end_date')
         params['end_date'] = filters.end_date
 
+    return where_clauses, params
+
+
+def _build_query(filters: AnalysisQueryRequest):
+    selected_metric = filters.metric if filters.metric in ALLOWED_METRICS else 'avg_arr_delay'
+    selected_view = filters.view if filters.view in ALLOWED_VIEWS else 'carrier'
+
+    select_columns = [
+        'dc.carrier_name AS carrier_name',
+        'ROUND(AVG(ff.arr_delay)::numeric, 2) AS avg_arr_delay',
+        'COUNT(*) AS total_flights',
+    ]
+
+    where_clauses, params = _build_filter_clauses(filters)
+
     query = text(
         f'''
         SELECT
@@ -91,6 +98,44 @@ def _build_query(filters: AnalysisQueryRequest):
     )
 
     return query, params, selected_metric, selected_view
+
+
+def _build_heatmap_query(filters: AnalysisQueryRequest, selected_metric: str):
+    where_clauses, params = _build_filter_clauses(filters)
+    x_expression = "COALESCE(origin_airport.airport, 'Unknown')"
+    y_expression = "COALESCE(ddt.delay_type_name, 'Unknown')"
+    value_expression = (
+        'COUNT(DISTINCT ff.flight_id)'
+        if selected_metric == 'total_flights'
+        else 'ROUND(AVG(ff.arr_delay)::numeric, 2)'
+    )
+
+    query = text(
+        f'''
+        SELECT
+            {x_expression} AS x,
+            {y_expression} AS y,
+            {value_expression} AS value
+        FROM fact_flight ff
+        JOIN dim_carrier dc
+            ON ff.mkt_carrier_airline_id = dc.airline_id
+        JOIN dim_date dd
+            ON ff.date_id = dd.date_id
+        LEFT JOIN dim_airport origin_airport
+            ON ff.origin_airport_id = origin_airport.airport_id
+        LEFT JOIN dim_airport dest_airport
+            ON ff.dest_airport_id = dest_airport.airport_id
+        LEFT JOIN fact_flight_delay ffd
+            ON ff.flight_id = ffd.flight_id
+        LEFT JOIN dim_delay_type ddt
+            ON ffd.delay_type_id = ddt.delay_type_id
+        WHERE {' AND '.join(where_clauses)}
+        GROUP BY {x_expression}, {y_expression}
+        ORDER BY {x_expression}, {y_expression}
+        '''
+    )
+
+    return query, params
 
 @router.get("/avg-arr-delay-by-carrier")
 def avg_arr_delay_by_carrier():
@@ -126,6 +171,15 @@ def analysis_query(payload: AnalysisQueryRequest):
         rows = conn.execute(query, params).mappings().all()
 
     table_data = [dict(row) for row in rows]
+    heatmap_data = []
+
+    if selected_view == 'heatmap':
+        heatmap_query, heatmap_params = _build_heatmap_query(payload, selected_metric)
+
+        with engine.connect() as conn:
+            heatmap_rows = conn.execute(heatmap_query, heatmap_params).mappings().all()
+
+        heatmap_data = [dict(row) for row in heatmap_rows]
 
     return {
         'filters_applied': payload.model_dump(),
@@ -135,5 +189,5 @@ def analysis_query(payload: AnalysisQueryRequest):
             'row_count': len(table_data),
         },
         'table_data': table_data,
-        'heatmap_data': [],
+        'heatmap_data': heatmap_data,
     }

@@ -23,8 +23,7 @@ app.add_middleware(
 
 app.include_router(analysis_router)
 
-# Run uvicorn on port 8011 to match the frontend API_BASE_URL configuration.
-
+#Run uvicorn on port 8011 to match the frontend API_BASE_URL configuration.
 @app.get("/health")
 def health():
     return {"status": "ok"}

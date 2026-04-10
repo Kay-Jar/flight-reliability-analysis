@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   CAlert,
   CBadge,
@@ -16,6 +16,7 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
+import Plot from 'react-plotly.js'
 
 import { useFilters } from '../../context/FiltersContext'
 import { API_BASE_URL } from '../../config/api'
@@ -50,6 +51,52 @@ const formatErrorDetail = (detail) => {
   return 'Request failed.'
 }
 
+const getPointValue = (value) => {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) ? numericValue : 0
+}
+
+const buildHeatmapMatrix = (points) => {
+  if (!Array.isArray(points) || points.length === 0) {
+    return null
+  }
+
+  const xLabels = []
+  const yLabels = []
+  const xIndex = new Map()
+  const yIndex = new Map()
+
+  points.forEach((point) => {
+    const xLabel = point?.x ?? 'Unknown'
+    const yLabel = point?.y ?? 'Unknown'
+
+    if (!xIndex.has(xLabel)) {
+      xIndex.set(xLabel, xLabels.length)
+      xLabels.push(xLabel)
+    }
+
+    if (!yIndex.has(yLabel)) {
+      yIndex.set(yLabel, yLabels.length)
+      yLabels.push(yLabel)
+    }
+  })
+
+  const z = yLabels.map(() => Array.from({ length: xLabels.length }, () => 0))
+
+  points.forEach((point) => {
+    const xLabel = point?.x ?? 'Unknown'
+    const yLabel = point?.y ?? 'Unknown'
+    const xPosition = xIndex.get(xLabel)
+    const yPosition = yIndex.get(yLabel)
+
+    if (xPosition !== undefined && yPosition !== undefined) {
+      z[yPosition][xPosition] = getPointValue(point?.value)
+    }
+  })
+
+  return { xLabels, yLabels, z }
+}
+
 const HeatmapPage = () => {
   const { filters } = useFilters()
   const [rows, setRows] = useState([])
@@ -59,6 +106,7 @@ const HeatmapPage = () => {
   const [querySucceeded, setQuerySucceeded] = useState(false)
   const [heatmapData, setHeatmapData] = useState(null)
   const [summary, setSummary] = useState(null)
+  const heatmapMatrix = useMemo(() => buildHeatmapMatrix(heatmapData), [heatmapData])
 
   const buildRequestPayload = () => ({
     airlines: filters.airlines,
@@ -229,17 +277,63 @@ const HeatmapPage = () => {
           <strong>Heatmap Preview</strong>
         </CCardHeader>
         <CCardBody className="d-flex align-items-center justify-content-center" style={{ minHeight: '320px' }}>
-          <div
-            className="rounded border border-2 text-center p-5 w-100 text-medium-emphasis"
-            style={{ borderStyle: 'dashed' }}
-          >
-            Heatmap will render here later.
-            <div className="mt-3">
+          <div className="w-100">
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h3 className="h6 mb-0">Matrix Heatmap Preview</h3>
               <CBadge color="secondary">
                 Heatmap data points: {Array.isArray(heatmapData) ? heatmapData.length : 0}
               </CBadge>
             </div>
-            {heatmapData ? null : null}
+            {heatmapMatrix ? (
+              <Plot
+                data={[
+                  {
+                    type: 'heatmap',
+                    x: heatmapMatrix.xLabels,
+                    y: heatmapMatrix.yLabels,
+                    z: heatmapMatrix.z,
+                    colorscale: 'Viridis',
+                    hoverongaps: false,
+                    zsmooth: false,
+                    hovertemplate: 'Airport: %{x}<br>Delay Type: %{y}<br>Value: %{z}<extra></extra>',
+                    colorbar: {
+                      title: 'Value',
+                    },
+                  },
+                ]}
+                layout={{
+                  autosize: true,
+                  margin: { l: 100, r: 20, t: 20, b: 80 },
+                  paper_bgcolor: 'transparent',
+                  plot_bgcolor: 'transparent',
+                  font: { color: '#e4e7ea' },
+                  xaxis: {
+                    title: { text: 'Airport', font: { color: '#e4e7ea' } },
+                    tickfont: { color: '#e4e7ea' },
+                    automargin: true,
+                    type: 'category',
+                  },
+                  yaxis: {
+                    title: { text: 'Delay Type', font: { color: '#e4e7ea' } },
+                    tickfont: { color: '#e4e7ea' },
+                    automargin: true,
+                    type: 'category',
+                  },
+                }}
+                config={{ displayModeBar: false, responsive: true }}
+                style={{ width: '100%', height: '420px' }}
+                useResizeHandler
+              />
+            ) : (
+              <div
+                className="rounded border border-2 text-center p-5 w-100 text-medium-emphasis"
+                style={{ borderStyle: 'dashed', minHeight: '320px' }}
+              >
+                {Array.isArray(heatmapData) && heatmapData.length === 0
+                  ? 'No heatmap data returned for the selected filters.'
+                  : 'Heatmap will render here later.'}
+              </div>
+            )}
           </div>
         </CCardBody>
       </CCard>
