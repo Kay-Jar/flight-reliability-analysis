@@ -16,9 +16,13 @@ python -m uvicorn app.main:app --reload --port 8011
 
 
 NEW WINDOW
+
 cd sp26-cs411-team028-blue\frontend
+
 npm.cmd install
+
 npm.cmd start
+
 
 
 http://localhost:3000
