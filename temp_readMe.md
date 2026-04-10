@@ -7,6 +7,9 @@ docker compose up -d
 
 docker ps
 
+python db\loaders\load_facts.py
+python db\loaders\load_dimensions.py
+
 
 cd sp26-cs411-team028-blue\backend
 pip install -r requirements.txt
