@@ -6,7 +6,7 @@ git clone https://github.com/cs411-alawini/sp26-cs411-team028-blue.git
 cd sp26-cs411-team028-blue
 ```
 
-## Start database
+## Start database (make sure docker is running)
 ```bash
 docker compose up -d
 ```
