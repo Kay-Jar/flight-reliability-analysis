@@ -7,9 +7,10 @@ docker compose up -d
 
 docker ps
 
+//I'm an idiot..... You need to load dim before loading facts OTHERWISE THE DATA IS DELETED UPON CASCADING
+python db\loaders\load_dimensions.py
 python db\loaders\load_facts.py
 
-python db\loaders\load_dimensions.py
 
 
 cd sp26-cs411-team028-blue\backend
