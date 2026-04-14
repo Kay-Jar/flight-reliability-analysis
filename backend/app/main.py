@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.db import engine
 from app.routes.analysis import router as analysis_router
+from app.routes.presets import router as presets_router
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(analysis_router)
+app.include_router(presets_router)
 
 #Run uvicorn on port 8011 to match the frontend API_BASE_URL configuration.
 @app.get("/health")
