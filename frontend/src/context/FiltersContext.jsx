@@ -1,21 +1,41 @@
 import React, { createContext, useContext, useMemo, useState } from 'react'
 
-const defaultFilters = {
-  airlines: ['Delta Air Lines Inc.', 'United Air Lines Inc.', 'Southwest Airlines Co.'],
-  airports: ['ATL', 'ORD'],
-  delay_types: ['Weather', 'Aircraft'],
-  start_date: '',
-  end_date: '',
+export const defaultFilters = {
+  airlines: [],
+  airports: [],
+  delay_types: [],
   metric: 'avg_arr_delay',
-  view: 'heatmap',
+  table_view: 'carrier_summary',
 }
 
 const FiltersContext = createContext(null)
 
 export const FiltersProvider = ({ children }) => {
   const [filters, setFilters] = useState(defaultFilters)
+  const [queryMode, setQueryMode] = useState('manual')
 
-  const value = useMemo(() => ({ filters, setFilters }), [filters])
+  const updateFilters = (updates) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      ...updates,
+    }))
+  }
+
+  const resetFilters = () => {
+    setFilters(defaultFilters)
+  }
+
+  const value = useMemo(
+    () => ({
+      filters,
+      setFilters,
+      updateFilters,
+      resetFilters,
+      queryMode,
+      setQueryMode,
+    }),
+    [filters, queryMode],
+  )
 
   return <FiltersContext.Provider value={value}>{children}</FiltersContext.Provider>
 }

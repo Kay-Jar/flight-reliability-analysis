@@ -56,6 +56,59 @@ body {
   min-height: calc(3rem + 1px); // stylelint-disable-line function-disallowed-list
 }
 
+.analytics-filter-options {
+  max-height: 15rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--cui-border-color);
+  border-radius: 0.375rem;
+  scroll-behavior: smooth;
+  contain: layout style paint;
+}
+
+.analytics-filter-options > * {
+  contain: content;
+}
+
+.analytics-filter-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.analytics-filter-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.analytics-filter-options::-webkit-scrollbar-thumb {
+  background: var(--cui-border-color);
+  border-radius: 3px;
+}
+
+.analytics-filter-options::-webkit-scrollbar-thumb:hover {
+  background: var(--cui-emphasis-color);
+}
+
+.table-scroll-container {
+  scroll-behavior: smooth;
+  contain: layout style paint;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--cui-border-color);
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: var(--cui-emphasis-color);
+}
+
 @include color-mode(dark) {
   body {
     background-color: var(--cui-dark-bg-subtle);

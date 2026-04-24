@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   CAlert,
   CBadge,
@@ -22,8 +22,6 @@ import { useFilters } from '../../context/FiltersContext'
 import { API_BASE_URL } from '../../config/api'
 
 const displayValue = (value) => (value === 0 ? '0' : value || '-')
-
-const formatList = (items) => (items.length > 0 ? items.join(', ') : 'Any')
 
 const formatErrorDetail = (detail) => {
   if (Array.isArray(detail)) {
@@ -56,6 +54,28 @@ const getPointValue = (value) => {
   return Number.isFinite(numericValue) ? numericValue : 0
 }
 
+const getPointFlightCount = (point) => {
+  const rawCount = point?.flight_count ?? point?.count ?? point?.total_flights
+  const numericCount = Number(rawCount)
+  return Number.isFinite(numericCount) ? numericCount : null
+}
+
+const getMetricDisplay = (metric) => {
+  if (metric === 'total_flights') {
+    return {
+      colorbarTitle: 'Flights (count)',
+      valueLabel: 'Flights',
+      valueUnit: '(count)',
+    }
+  }
+
+  return {
+    colorbarTitle: 'Delay (min)',
+    valueLabel: 'Delay',
+    valueUnit: '(min)',
+  }
+}
+
 const buildHeatmapMatrix = (points) => {
   if (!Array.isArray(points) || points.length === 0) {
     return null
@@ -82,6 +102,7 @@ const buildHeatmapMatrix = (points) => {
   })
 
   const z = yLabels.map(() => Array.from({ length: xLabels.length }, () => 0))
+  const flightCounts = yLabels.map(() => Array.from({ length: xLabels.length }, () => null))
 
   points.forEach((point) => {
     const xLabel = point?.x ?? 'Unknown'
@@ -91,14 +112,129 @@ const buildHeatmapMatrix = (points) => {
 
     if (xPosition !== undefined && yPosition !== undefined) {
       z[yPosition][xPosition] = getPointValue(point?.value)
+      flightCounts[yPosition][xPosition] = getPointFlightCount(point)
     }
   })
 
-  return { xLabels, yLabels, z }
+  return { xLabels, yLabels, z, flightCounts }
 }
 
+const buildActiveFilterChips = (filters) => {
+  const chips = [
+    ...filters.airlines.map((value) => ({ key: `airline-${value}`, label: `Airline: ${value}` })),
+    ...filters.airports.map((value) => ({ key: `airport-${value}`, label: `Airport: ${value}` })),
+    ...filters.delay_types.map((value) => ({
+      key: `delay-${value}`,
+      label: `Delay Type: ${value}`,
+    })),
+  ]
+
+  chips.push({ key: 'metric', label: `Metric: ${filters.metric}` })
+  chips.push({ key: 'table-view', label: `Table View: ${filters.table_view}` })
+
+  return chips
+}
+
+const SUMMARY_TABLE_COLUMNS = [
+  { key: 'carrier_name', label: 'Carrier Name' },
+  { key: 'avg_arr_delay', label: 'Average Arrival Delay (min)' },
+  { key: 'total_flights', label: 'Total Flights (count)' },
+]
+
+const RAW_FLIGHTS_TABLE_COLUMNS = [
+  { key: 'flight_id', label: 'Flight ID' },
+  { key: 'full_date', label: 'Date' },
+  { key: 'carrier_name', label: 'Carrier' },
+  { key: 'origin_airport', label: 'Origin' },
+  { key: 'destination_airport', label: 'Destination' },
+  { key: 'arr_delay', label: 'Arrival Delay (min)' },
+  { key: 'dep_delay', label: 'Departure Delay (min)' },
+  { key: 'distance', label: 'Distance (miles)' },
+  { key: 'air_time', label: 'Air Time (min)' },
+]
+
+const HeatmapPanel = React.memo(({ heatmapData, heatmapMatrix, metric }) => {
+  const metricDisplay = getMetricDisplay(metric)
+  const tooltipExtraMatrix =
+    heatmapMatrix?.flightCounts?.map((row) =>
+      row.map((count) => (count === null ? '' : `<br>Flight Count: ${count} (count)`)),
+    ) || []
+
+  return (
+    <CCard className="shadow-sm">
+      <CCardHeader>
+        <strong>Heatmap Preview</strong>
+      </CCardHeader>
+      <CCardBody
+        className="d-flex align-items-center justify-content-center"
+        style={{ minHeight: '320px' }}
+      >
+        <div className="w-100">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <h3 className="h6 mb-0">Matrix Heatmap Preview</h3>
+            <CBadge color="secondary">
+              Heatmap data points: {Array.isArray(heatmapData) ? heatmapData.length : 0}
+            </CBadge>
+          </div>
+          {heatmapMatrix ? (
+            <Plot
+              data={[
+                {
+                  type: 'heatmap',
+                  x: heatmapMatrix.xLabels,
+                  y: heatmapMatrix.yLabels,
+                  z: heatmapMatrix.z,
+                  text: tooltipExtraMatrix,
+                  colorscale: 'Viridis',
+                  hoverongaps: false,
+                  zsmooth: false,
+                  hovertemplate: `Airport (IATA): %{x}<br>Delay Type: %{y}<br>${metricDisplay.valueLabel}: %{z} ${metricDisplay.valueUnit}%{text}<extra></extra>`,
+                  colorbar: {
+                    title: metricDisplay.colorbarTitle,
+                  },
+                },
+              ]}
+              layout={{
+                autosize: true,
+                margin: { l: 100, r: 20, t: 20, b: 80 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: '#e4e7ea' },
+                xaxis: {
+                  title: { text: 'Airport (IATA)', font: { color: '#e4e7ea' } },
+                  tickfont: { color: '#e4e7ea' },
+                  automargin: true,
+                  type: 'category',
+                },
+                yaxis: {
+                  title: { text: 'Delay Type', font: { color: '#e4e7ea' } },
+                  tickfont: { color: '#e4e7ea' },
+                  automargin: true,
+                  type: 'category',
+                },
+              }}
+              config={{ displayModeBar: false, responsive: true }}
+              style={{ width: '100%', height: '420px' }}
+              useResizeHandler
+            />
+          ) : (
+            <div
+              className="rounded border border-2 text-center p-5 w-100 text-medium-emphasis"
+              style={{ borderStyle: 'dashed', minHeight: '320px' }}
+            >
+              {Array.isArray(heatmapData) && heatmapData.length === 0
+                ? 'No heatmap data returned for the selected filters.'
+                : 'Run a query to render the heatmap.'}
+            </div>
+          )}
+        </div>
+      </CCardBody>
+    </CCard>
+  )
+})
+
 const HeatmapPage = () => {
-  const { filters } = useFilters()
+  const { filters, queryMode } = useFilters()
   const [rows, setRows] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -107,18 +243,23 @@ const HeatmapPage = () => {
   const [heatmapData, setHeatmapData] = useState(null)
   const [summary, setSummary] = useState(null)
   const heatmapMatrix = useMemo(() => buildHeatmapMatrix(heatmapData), [heatmapData])
+  const activeFilterChips = useMemo(() => buildActiveFilterChips(filters), [filters])
+  const activeTableView = summary?.table_view || filters.table_view
+  const tableColumns =
+    activeTableView === 'raw_flights' ? RAW_FLIGHTS_TABLE_COLUMNS : SUMMARY_TABLE_COLUMNS
 
-  const buildRequestPayload = () => ({
-    airlines: filters.airlines,
-    airports: filters.airports,
-    delay_types: filters.delay_types,
-    start_date: filters.start_date || null,
-    end_date: filters.end_date || null,
-    metric: filters.metric,
-    view: filters.view,
-  })
+  const buildRequestPayload = useCallback(
+    () => ({
+      airlines: filters.airlines,
+      airports: filters.airports,
+      delay_types: filters.delay_types,
+      metric: filters.metric,
+      table_view: filters.table_view,
+    }),
+    [filters],
+  )
 
-  const runQuery = async () => {
+  const runQuery = useCallback(async () => {
     setIsLoading(true)
     setError('')
     setSummary(null)
@@ -164,7 +305,19 @@ const HeatmapPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [buildRequestPayload])
+
+  useEffect(() => {
+    if (queryMode !== 'auto') {
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      void runQuery()
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [queryMode, runQuery])
 
   return (
     <div className="d-flex flex-column gap-4">
@@ -172,11 +325,14 @@ const HeatmapPage = () => {
         <CCardBody className="p-4">
           <h1 className="h3 mb-2">Flight Reliability Analysis</h1>
           <p className="text-medium-emphasis mb-4">
-            A checkpoint demo for exploring flight delay analytics before the final heatmap view.
+            Explore flight delay analytics with scalable, backend-powered filters.
           </p>
           <CButton color="primary" onClick={runQuery} disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Run Query'}
+            {isLoading ? 'Loading...' : queryMode === 'auto' ? 'Refresh Now' : 'Run Query'}
           </CButton>
+          <span className="small text-medium-emphasis ms-3">
+            Mode: {queryMode === 'auto' ? 'Auto (debounced)' : 'Manual'}
+          </span>
 
           <div className="mt-4">
             <h2 className="h5 mb-3">Results</h2>
@@ -185,26 +341,22 @@ const HeatmapPage = () => {
             <CCard className="mb-3 border">
               <CCardBody className="py-3">
                 <h3 className="h6 mb-2">Active Filters</h3>
-                <div className="small mb-1">
-                  <strong>Airlines:</strong> {formatList(filters.airlines)}
-                </div>
-                <div className="small mb-1">
-                  <strong>Airports:</strong> {formatList(filters.airports)}
-                </div>
-                <div className="small mb-1">
-                  <strong>Delay Types:</strong> {formatList(filters.delay_types)}
-                </div>
-                <div className="small">
-                  <strong>Date Range:</strong>{' '}
-                  {filters.start_date || filters.end_date
-                    ? `${filters.start_date || 'Any'} to ${filters.end_date || 'Any'}`
-                    : 'Any'}
-                </div>
+                {activeFilterChips.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-2">
+                    {activeFilterChips.map((chip) => (
+                      <CBadge key={chip.key} color="light" className="border text-dark">
+                        {chip.label}
+                      </CBadge>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="small text-medium-emphasis">No active filters selected.</div>
+                )}
               </CCardBody>
             </CCard>
 
             <CRow className="g-3 mb-3">
-              <CCol md={4}>
+              <CCol md={3}>
                 <CCard className="h-100 border">
                   <CCardBody className="py-3">
                     <div className="small text-medium-emphasis">Metric</div>
@@ -212,131 +364,100 @@ const HeatmapPage = () => {
                   </CCardBody>
                 </CCard>
               </CCol>
-              <CCol md={4}>
+              <CCol md={3}>
                 <CCard className="h-100 border">
                   <CCardBody className="py-3">
-                    <div className="small text-medium-emphasis">View</div>
-                    <div className="fw-semibold">{displayValue(summary?.view)}</div>
+                    <div className="small text-medium-emphasis">Table View</div>
+                    <div className="fw-semibold">{displayValue(summary?.table_view)}</div>
                   </CCardBody>
                 </CCard>
               </CCol>
-              <CCol md={4}>
+              <CCol md={3}>
                 <CCard className="h-100 border">
                   <CCardBody className="py-3">
-                    <div className="small text-medium-emphasis">Rows Returned</div>
+                    <div className="small text-medium-emphasis">Total Results</div>
                     <div className="fw-semibold">{displayValue(summary?.row_count)}</div>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+              <CCol md={3}>
+                <CCard className="h-100 border">
+                  <CCardBody className="py-3">
+                    <div className="small text-medium-emphasis">Heatmap Points</div>
+                    <div className="fw-semibold">{displayValue(summary?.heatmap_point_count)}</div>
                   </CCardBody>
                 </CCard>
               </CCol>
             </CRow>
 
-            <CTable bordered hover responsive className="mb-0 align-middle">
-              <CTableHead color="light">
-                <CTableRow>
-                  <CTableHeaderCell scope="col">Carrier Name</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Average Arrival Delay</CTableHeaderCell>
-                  <CTableHeaderCell scope="col">Total Flights</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {isLoading ? (
+            <div
+              className="table-scroll-container mb-0"
+              style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'hidden' }}
+            >
+              <CTable bordered hover responsive className="mb-0 align-middle">
+                <CTableHead color="light">
                   <CTableRow>
-                    <CTableDataCell colSpan={3} className="text-center py-4">
-                      <CSpinner size="sm" className="me-2" /> Loading results...
-                    </CTableDataCell>
+                    {tableColumns.map((column) => (
+                      <CTableHeaderCell key={column.key} scope="col">
+                        {column.label}
+                      </CTableHeaderCell>
+                    ))}
                   </CTableRow>
-                ) : rows.length > 0 ? (
-                  rows.map((row, index) => (
-                    <CTableRow key={`${row.carrier_name || 'carrier'}-${index}`}>
-                      <CTableDataCell>{displayValue(row.carrier_name)}</CTableDataCell>
-                      <CTableDataCell>{displayValue(row.avg_arr_delay)}</CTableDataCell>
-                      <CTableDataCell>{displayValue(row.total_flights)}</CTableDataCell>
+                </CTableHead>
+                <CTableBody>
+                  {isLoading ? (
+                    <CTableRow>
+                      <CTableDataCell colSpan={tableColumns.length} className="text-center py-4">
+                        <CSpinner size="sm" className="me-2" /> Loading results...
+                      </CTableDataCell>
                     </CTableRow>
-                  ))
-                ) : !hasQueried ? (
-                  <CTableRow>
-                    <CTableDataCell colSpan={3} className="text-center text-medium-emphasis py-4">
-                      Click Run Query to load checkpoint results.
-                    </CTableDataCell>
-                  </CTableRow>
-                ) : querySucceeded ? (
-                  <CTableRow>
-                    <CTableDataCell colSpan={3} className="text-center text-medium-emphasis py-4">
-                      No results returned.
-                    </CTableDataCell>
-                  </CTableRow>
-                ) : null}
-              </CTableBody>
-            </CTable>
+                  ) : rows.length > 0 ? (
+                    rows.map((row, index) => (
+                      <CTableRow key={`${row.flight_id || row.carrier_name || 'row'}-${index}`}>
+                        {tableColumns.map((column) => (
+                          <CTableDataCell key={`${column.key}-${index}`}>
+                            {displayValue(row[column.key])}
+                          </CTableDataCell>
+                        ))}
+                      </CTableRow>
+                    ))
+                  ) : !hasQueried ? (
+                    <CTableRow>
+                      <CTableDataCell
+                        colSpan={tableColumns.length}
+                        className="text-center text-medium-emphasis py-4"
+                      >
+                        {queryMode === 'auto'
+                          ? 'Waiting for filter updates to trigger the first query.'
+                          : 'Click Run Query to load results.'}
+                      </CTableDataCell>
+                    </CTableRow>
+                  ) : querySucceeded ? (
+                    <CTableRow>
+                      <CTableDataCell
+                        colSpan={tableColumns.length}
+                        className="text-center text-medium-emphasis py-4"
+                      >
+                        No results returned.
+                      </CTableDataCell>
+                    </CTableRow>
+                  ) : null}
+                </CTableBody>
+              </CTable>
+            </div>
           </div>
         </CCardBody>
       </CCard>
 
-      <CCard className="shadow-sm">
-        <CCardHeader>
-          <strong>Heatmap Preview</strong>
-        </CCardHeader>
-        <CCardBody className="d-flex align-items-center justify-content-center" style={{ minHeight: '320px' }}>
-          <div className="w-100">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h3 className="h6 mb-0">Matrix Heatmap Preview</h3>
-              <CBadge color="secondary">
-                Heatmap data points: {Array.isArray(heatmapData) ? heatmapData.length : 0}
-              </CBadge>
-            </div>
-            {heatmapMatrix ? (
-              <Plot
-                data={[
-                  {
-                    type: 'heatmap',
-                    x: heatmapMatrix.xLabels,
-                    y: heatmapMatrix.yLabels,
-                    z: heatmapMatrix.z,
-                    colorscale: 'Viridis',
-                    hoverongaps: false,
-                    zsmooth: false,
-                    hovertemplate: 'Airport: %{x}<br>Delay Type: %{y}<br>Value: %{z}<extra></extra>',
-                    colorbar: {
-                      title: 'Value',
-                    },
-                  },
-                ]}
-                layout={{
-                  autosize: true,
-                  margin: { l: 100, r: 20, t: 20, b: 80 },
-                  paper_bgcolor: 'transparent',
-                  plot_bgcolor: 'transparent',
-                  font: { color: '#e4e7ea' },
-                  xaxis: {
-                    title: { text: 'Airport', font: { color: '#e4e7ea' } },
-                    tickfont: { color: '#e4e7ea' },
-                    automargin: true,
-                    type: 'category',
-                  },
-                  yaxis: {
-                    title: { text: 'Delay Type', font: { color: '#e4e7ea' } },
-                    tickfont: { color: '#e4e7ea' },
-                    automargin: true,
-                    type: 'category',
-                  },
-                }}
-                config={{ displayModeBar: false, responsive: true }}
-                style={{ width: '100%', height: '420px' }}
-                useResizeHandler
-              />
-            ) : (
-              <div
-                className="rounded border border-2 text-center p-5 w-100 text-medium-emphasis"
-                style={{ borderStyle: 'dashed', minHeight: '320px' }}
-              >
-                {Array.isArray(heatmapData) && heatmapData.length === 0
-                  ? 'No heatmap data returned for the selected filters.'
-                  : 'Heatmap will render here later.'}
-              </div>
-            )}
-          </div>
-        </CCardBody>
-      </CCard>
+      <HeatmapPanel
+        heatmapData={heatmapData}
+        heatmapMatrix={heatmapMatrix}
+        metric={summary?.metric || filters.metric}
+      />
+      <div className="small text-medium-emphasis px-1">
+        Heatmap axes follow selected filters: chosen airports limit visible columns and chosen delay
+        types limit visible rows.
+      </div>
     </div>
   )
 }

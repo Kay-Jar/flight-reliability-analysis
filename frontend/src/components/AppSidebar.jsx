@@ -19,16 +19,19 @@
  * )
  */
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 
 import {
+  CBadge,
   CButton,
   CCloseButton,
-  CForm,
   CFormCheck,
+  CForm,
   CFormInput,
   CFormLabel,
+  CFormSelect,
+  CSpinner,
   CSidebar,
   CSidebarBrand,
   CSidebarHeader,
@@ -39,18 +42,206 @@ import { useFilters } from '../context/FiltersContext'
 import { API_BASE_URL } from '../config/api'
 import teamBlueLogo from '../assets/images/TeamBlueLogoCropped.png'
 
-const airlineOptions = [
+const toggleValue = (values, value) => {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
+}
+
+const makeSafeId = (value) =>
+  String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+
+const getSearchPlaceholder = (label) => `Search ${label.toLowerCase()}...`
+const DISPLAY_RESULT_LIMIT = 50
+const DEFAULT_AIRLINE_OPTIONS = [
   'Delta Air Lines Inc.',
   'United Air Lines Inc.',
   'Southwest Airlines Co.',
   'American Airlines Inc.',
   'JetBlue Airways',
+  'Alaska Airlines Inc.',
+  'Spirit Air Lines',
+  'Frontier Airlines Inc.',
+  'Allegiant Air',
+  'Hawaiian Airlines Inc.',
 ]
-const airportOptions = ['ATL', 'ORD', 'DEN', 'LAX', 'JFK']
-const delayTypeOptions = ['Weather', 'Aircraft', 'Carrier', 'NAS', 'Security']
+const DEFAULT_AIRPORT_OPTIONS = [
+  'ATL',
+  'ORD',
+  'DEN',
+  'LAX',
+  'JFK',
+  'DFW',
+  'SFO',
+  'SEA',
+  'LAS',
+  'MCO',
+]
 
-const toggleValue = (values, value) => {
-  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
+const mapFilterOptions = (payload) => {
+  if (!Array.isArray(payload)) {
+    return []
+  }
+
+  return payload
+    .map((item) => {
+      if (typeof item === 'string') {
+        return {
+          value: item,
+          label: item,
+        }
+      }
+
+      if (item && typeof item === 'object' && item.value) {
+        return {
+          value: item.value,
+          label: item.label || item.value,
+        }
+      }
+
+      return null
+    })
+    .filter(Boolean)
+}
+
+const SearchableMultiSelect = ({ label, endpoint, selectedValues, onToggle, defaultOptions }) => {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [options, setOptions] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [hasFetched, setHasFetched] = useState(false)
+  const trimmedSearchTerm = searchTerm.trim()
+
+  useEffect(() => {
+    if (!trimmedSearchTerm) {
+      setOptions([])
+      setError('')
+      setHasFetched(false)
+      setIsLoading(false)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true)
+      setError('')
+
+      try {
+        const url = new URL(`${API_BASE_URL}${endpoint}`)
+        url.searchParams.set('q', trimmedSearchTerm)
+
+        const response = await fetch(url, { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error(`Unable to load ${label.toLowerCase()} options.`)
+        }
+
+        const payload = await response.json()
+        setOptions(mapFilterOptions(payload))
+      } catch (fetchError) {
+        if (fetchError?.name !== 'AbortError') {
+          setOptions([])
+          setError(fetchError instanceof Error ? fetchError.message : 'Failed to load options.')
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false)
+          setHasFetched(true)
+        }
+      }
+    }, 300)
+
+    return () => {
+      controller.abort()
+      clearTimeout(timeoutId)
+    }
+  }, [endpoint, label, trimmedSearchTerm])
+
+  const selectedSet = useMemo(() => new Set(selectedValues), [selectedValues])
+  const displayedOptions = useMemo(() => options.slice(0, DISPLAY_RESULT_LIMIT), [options])
+  const displayedDefaultOptions = useMemo(() => mapFilterOptions(defaultOptions), [defaultOptions])
+
+  return (
+    <div className="mb-4">
+      <CFormLabel className="fw-semibold mb-2">{label}</CFormLabel>
+      <CFormInput
+        size="sm"
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
+        placeholder={getSearchPlaceholder(label)}
+        className="mb-2"
+      />
+
+      {selectedValues.length > 0 ? (
+        <div className="d-flex flex-wrap gap-2 mb-2">
+          {selectedValues.map((value) => (
+            <CBadge
+              color="primary"
+              shape="rounded-pill"
+              key={`${label}-${value}`}
+              role="button"
+              onClick={() => onToggle(value)}
+            >
+              {value} x
+            </CBadge>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="analytics-filter-options">
+        {!trimmedSearchTerm ? (
+          <div className="px-2 py-2">
+            <div className="small text-medium-emphasis mb-2">Common {label.toLowerCase()}:</div>
+            {displayedDefaultOptions.map((option) => (
+              <CFormCheck
+                className="py-1"
+                key={`${label}-default-${option.value}`}
+                id={`${makeSafeId(label)}-default-${makeSafeId(option.value)}`}
+                label={option.label}
+                checked={selectedSet.has(option.value)}
+                onChange={() => onToggle(option.value)}
+              />
+            ))}
+            <div className="small text-medium-emphasis mt-2 border-top pt-2">
+              Type to search all {label.toLowerCase()}.
+            </div>
+          </div>
+        ) : null}
+
+        {trimmedSearchTerm && isLoading ? (
+          <div className="small text-medium-emphasis px-2 py-2">
+            <CSpinner size="sm" className="me-2" /> Loading...
+          </div>
+        ) : null}
+
+        {trimmedSearchTerm && !isLoading && error ? (
+          <div className="small text-danger px-2 py-2">{error}</div>
+        ) : null}
+
+        {trimmedSearchTerm && !isLoading && !error && displayedOptions.length > 0
+          ? displayedOptions.map((option) => (
+              <CFormCheck
+                className="px-2 py-1"
+                key={`${label}-${option.value}`}
+                id={`${makeSafeId(label)}-${makeSafeId(option.value)}`}
+                label={option.label}
+                checked={selectedSet.has(option.value)}
+                onChange={() => onToggle(option.value)}
+              />
+            ))
+          : null}
+
+        {trimmedSearchTerm && !isLoading && !error && hasFetched && options.length === 0 ? (
+          <div className="small text-medium-emphasis px-2 py-2">No matches found.</div>
+        ) : null}
+
+        {trimmedSearchTerm && !isLoading && !error && options.length > DISPLAY_RESULT_LIMIT ? (
+          <div className="small text-medium-emphasis px-2 py-2 border-top">
+            Showing first {DISPLAY_RESULT_LIMIT} matches. All options are searchable.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 /**
@@ -69,7 +260,10 @@ const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
-  const { filters, setFilters } = useFilters()
+  const { filters, setFilters, updateFilters, resetFilters, queryMode, setQueryMode } = useFilters()
+  const [delayTypeOptions, setDelayTypeOptions] = useState([])
+  const [delayTypesLoading, setDelayTypesLoading] = useState(false)
+  const [delayTypesError, setDelayTypesError] = useState('')
 
   const [presets, setPresets] = useState([])
   const [presetName, setPresetName] = useState('')
@@ -130,7 +324,7 @@ const AppSidebar = () => {
       })
       await fetchPresets()
     } catch {
-      //silent 
+      //silent
     }
   }
 
@@ -145,12 +339,50 @@ const AppSidebar = () => {
     }
   }
 
-  const updateFilters = (updates) => {
-    setFilters((currentFilters) => ({
-      ...currentFilters,
-      ...updates,
-    }))
-  }
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const loadDelayTypes = async () => {
+      setDelayTypesLoading(true)
+      setDelayTypesError('')
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/analysis/filters/delay-types`, {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error('Unable to load delay types.')
+        }
+
+        const payload = await response.json()
+        setDelayTypeOptions(mapFilterOptions(payload))
+      } catch (fetchError) {
+        if (fetchError?.name !== 'AbortError') {
+          setDelayTypesError(
+            fetchError instanceof Error ? fetchError.message : 'Failed to load delay types.',
+          )
+          setDelayTypeOptions([])
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setDelayTypesLoading(false)
+        }
+      }
+    }
+
+    void loadDelayTypes()
+
+    return () => controller.abort()
+  }, [])
+
+  const activeFilterCount =
+    filters.airlines.length + filters.airports.length + filters.delay_types.length
+
+  const canResetFilters =
+    activeFilterCount > 0 ||
+    filters.metric !== 'avg_arr_delay' ||
+    filters.table_view !== 'carrier_summary'
 
   return (
     <CSidebar
@@ -179,72 +411,117 @@ const AppSidebar = () => {
       </CSidebarHeader>
       <CSidebarNav className="px-3 py-3">
         <CForm>
-          <div className="mb-4">
-            <CFormLabel className="fw-semibold mb-2">Airlines</CFormLabel>
-            {airlineOptions.map((airline) => (
-              <CFormCheck
-                key={airline}
-                id={`airline-${airline.toLowerCase()}`}
-                label={airline}
-                checked={filters.airlines.includes(airline)}
-                onChange={() =>
-                  updateFilters({
-                    airlines: toggleValue(filters.airlines, airline),
-                  })
-                }
-              />
-            ))}
+          <div className="mb-3 d-flex align-items-center justify-content-between">
+            <div>
+              <div className="fw-semibold">Filters</div>
+              <div className="small text-medium-emphasis">Active: {activeFilterCount}</div>
+            </div>
+            <CButton size="sm" color="light" onClick={resetFilters} disabled={!canResetFilters}>
+              Reset
+            </CButton>
           </div>
 
-          <div className="mb-4">
-            <CFormLabel className="fw-semibold mb-2">Airports</CFormLabel>
-            {airportOptions.map((airport) => (
-              <CFormCheck
-                key={airport}
-                id={`airport-${airport.toLowerCase()}`}
-                label={airport}
-                checked={filters.airports.includes(airport)}
-                onChange={() =>
-                  updateFilters({
-                    airports: toggleValue(filters.airports, airport),
-                  })
-                }
-              />
-            ))}
-          </div>
+          <SearchableMultiSelect
+            label="Airlines"
+            endpoint="/analysis/filters/airlines"
+            selectedValues={filters.airlines}
+            defaultOptions={DEFAULT_AIRLINE_OPTIONS}
+            onToggle={(value) =>
+              updateFilters({
+                airlines: toggleValue(filters.airlines, value),
+              })
+            }
+          />
+
+          <SearchableMultiSelect
+            label="Airports"
+            endpoint="/analysis/filters/airports"
+            selectedValues={filters.airports}
+            defaultOptions={DEFAULT_AIRPORT_OPTIONS}
+            onToggle={(value) =>
+              updateFilters({
+                airports: toggleValue(filters.airports, value),
+              })
+            }
+          />
 
           <div className="mb-4">
             <CFormLabel className="fw-semibold mb-2">Delay Types</CFormLabel>
-            {delayTypeOptions.map((delayType) => (
-              <CFormCheck
-                key={delayType}
-                id={`delay-${delayType.toLowerCase()}`}
-                label={delayType}
-                checked={filters.delay_types.includes(delayType)}
-                onChange={() =>
-                  updateFilters({
-                    delay_types: toggleValue(filters.delay_types, delayType),
-                  })
-                }
-              />
-            ))}
+            {delayTypesLoading ? (
+              <div className="small text-medium-emphasis">
+                <CSpinner size="sm" className="me-2" /> Loading delay types...
+              </div>
+            ) : null}
+
+            {!delayTypesLoading && delayTypesError ? (
+              <div className="small text-danger">{delayTypesError}</div>
+            ) : null}
+
+            {!delayTypesLoading && !delayTypesError && delayTypeOptions.length > 0 ? (
+              <div className="d-flex flex-wrap gap-2">
+                {delayTypeOptions.map((option) => {
+                  const selected = filters.delay_types.includes(option.value)
+                  return (
+                    <CButton
+                      key={`delay-${option.value}`}
+                      size="sm"
+                      color={selected ? 'primary' : 'light'}
+                      variant={selected ? undefined : 'outline'}
+                      onClick={() =>
+                        updateFilters({
+                          delay_types: toggleValue(filters.delay_types, option.value),
+                        })
+                      }
+                    >
+                      {option.label}
+                    </CButton>
+                  )
+                })}
+              </div>
+            ) : null}
+
+            {!delayTypesLoading && !delayTypesError && delayTypeOptions.length === 0 ? (
+              <div className="small text-medium-emphasis">No delay types available.</div>
+            ) : null}
           </div>
 
-          <div className="mb-2">
-            <CFormLabel className="fw-semibold mb-2">Date Range</CFormLabel>
-            <CFormInput
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Metric</CFormLabel>
+            <CFormSelect
               size="sm"
-              type="date"
-              value={filters.start_date}
-              onChange={(event) => updateFilters({ start_date: event.target.value })}
-            />
-            <CFormInput
+              value={filters.metric}
+              onChange={(event) => updateFilters({ metric: event.target.value })}
+            >
+              <option value="avg_arr_delay">Average Arrival Delay</option>
+              <option value="total_flights">Total Flights</option>
+            </CFormSelect>
+          </div>
+
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Table View</CFormLabel>
+            <CFormSelect
               size="sm"
-              type="date"
-              value={filters.end_date}
-              onChange={(event) => updateFilters({ end_date: event.target.value })}
-              className="mt-2"
+              value={filters.table_view}
+              onChange={(event) => updateFilters({ table_view: event.target.value })}
+            >
+              <option value="carrier_summary">Carrier Summary</option>
+              <option value="raw_flights">Raw Flight Records</option>
+            </CFormSelect>
+          </div>
+
+          <div className="mb-4">
+            <CFormCheck
+              type="switch"
+              id="query-mode-switch"
+              label={queryMode === 'auto' ? 'Auto-query mode' : 'Manual query mode'}
+              checked={queryMode === 'auto'}
+              onChange={(event) => setQueryMode(event.target.checked ? 'auto' : 'manual')}
             />
+            <div className="small text-medium-emphasis mt-1">
+              {queryMode === 'auto'
+                ? 'Results refresh automatically after filter changes.'
+                : 'Use Run Query on the analysis page.'}
+            </div>
           </div>
         </CForm>
 
