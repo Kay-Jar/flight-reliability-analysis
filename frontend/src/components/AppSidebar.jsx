@@ -251,7 +251,7 @@ const SearchableMultiSelect = ({ label, endpoint, selectedValues, onToggle, defa
  * - sidebarShow: Controls sidebar visibility
  * - sidebarUnfoldable: Controls narrow/wide mode
  *
- * Renders navigation from _nav.js configuration file.
+ * Renders the analysis filter controls and preset actions.
  * Memoized to prevent unnecessary re-renders.
  *
  * @returns {React.ReactElement} Sidebar with navigation

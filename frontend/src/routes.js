@@ -34,8 +34,6 @@ const HeatmapPage = React.lazy(() => import('./views/heatmap/HeatmapPage'))
  * // Route with exact match required
  * { path: '/base', name: 'Base', element: Cards, exact: true }
  */
-export const routes = [
-  { path: '/heatmap', name: 'Heatmap', element: HeatmapPage },
-]
+export const routes = [{ path: '/heatmap', name: 'Heatmap', element: HeatmapPage }]
 
 export default routes
