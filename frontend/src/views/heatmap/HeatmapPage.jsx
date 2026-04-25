@@ -242,6 +242,12 @@ const HeatmapPage = () => {
   const [querySucceeded, setQuerySucceeded] = useState(false)
   const [heatmapData, setHeatmapData] = useState(null)
   const [summary, setSummary] = useState(null)
+  const [worstCarriers, setWorstCarriers] = useState([])
+  const [worstCarriersLoading, setWorstCarriersLoading] = useState(false)
+  const [worstCarriersError, setWorstCarriersError] = useState('')
+  const [dashboard, setDashboard] = useState(null)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+  const [dashboardError, setDashboardError] = useState('')
   const heatmapMatrix = useMemo(() => buildHeatmapMatrix(heatmapData), [heatmapData])
   const activeFilterChips = useMemo(() => buildActiveFilterChips(filters), [filters])
   const activeTableView = summary?.table_view || filters.table_view
@@ -306,6 +312,44 @@ const HeatmapPage = () => {
       setIsLoading(false)
     }
   }, [buildRequestPayload])
+
+  const loadDashboard = useCallback(async () => {
+    setDashboardLoading(true)
+    setDashboardError('')
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/analysis/dashboard?limit_airports=15&limit_routes=10`,
+      )
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+      setDashboard(await response.json())
+    } catch (err) {
+      setDashboard(null)
+      setDashboardError(err instanceof Error ? err.message : 'Failed to load dashboard.')
+    } finally {
+      setDashboardLoading(false)
+    }
+  }, [])
+
+  const loadWorstCarriers = useCallback(async () => {
+    setWorstCarriersLoading(true)
+    setWorstCarriersError('')
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/analysis/carriers-above-average?min_flights=100&limit=15`,
+      )
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+      setWorstCarriers(await response.json())
+    } catch (err) {
+      setWorstCarriers([])
+      setWorstCarriersError(err instanceof Error ? err.message : 'Failed to load carriers.')
+    } finally {
+      setWorstCarriersLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (queryMode !== 'auto') {
@@ -446,6 +490,106 @@ const HeatmapPage = () => {
               </CTable>
             </div>
           </div>
+        </CCardBody>
+      </CCard>
+
+      <CCard className="shadow-sm">
+        <CCardHeader>
+          <strong>Worst Carriers (Stored Procedure)</strong>
+        </CCardHeader>
+        <CCardBody>
+          <CButton color="primary" onClick={loadWorstCarriers} disabled={worstCarriersLoading}>
+            {worstCarriersLoading ? 'Loading...' : 'Run Stored Procedure'}
+          </CButton>
+          {worstCarriersError ? (
+            <CAlert color="danger" className="mt-3 mb-0">
+              {worstCarriersError}
+            </CAlert>
+          ) : null}
+          {worstCarriers.length > 0 ? (
+            <CTable bordered hover responsive className="mb-0 mt-3 align-middle">
+              <CTableHead color="light">
+                <CTableRow>
+                  <CTableHeaderCell>Carrier</CTableHeaderCell>
+                  <CTableHeaderCell>Carrier Name</CTableHeaderCell>
+                  <CTableHeaderCell>Total Flights</CTableHeaderCell>
+                  <CTableHeaderCell>Avg Arrival Delay (min)</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                {worstCarriers.map((row) => (
+                  <CTableRow key={row.carrier}>
+                    <CTableDataCell>{row.carrier}</CTableDataCell>
+                    <CTableDataCell>{row.carrier_name}</CTableDataCell>
+                    <CTableDataCell>{row.total_flights}</CTableDataCell>
+                    <CTableDataCell>{row.avg_arr_delay}</CTableDataCell>
+                  </CTableRow>
+                ))}
+              </CTableBody>
+            </CTable>
+          ) : null}
+        </CCardBody>
+      </CCard>
+
+      <CCard className="shadow-sm">
+        <CCardHeader>
+          <strong>Cross-Query Dashboard (Transaction)</strong>
+        </CCardHeader>
+        <CCardBody>
+          <CButton color="primary" onClick={loadDashboard} disabled={dashboardLoading}>
+            {dashboardLoading ? 'Loading...' : 'Run Transaction'}
+          </CButton>
+          {dashboardError ? (
+            <CAlert color="danger" className="mt-3 mb-0">
+              {dashboardError}
+            </CAlert>
+          ) : null}
+          {dashboard ? (
+            <CRow className="g-3 mt-2">
+              <CCol md={6}>
+                <h3 className="h6 mb-2">Busiest Airports</h3>
+                <CTable bordered hover responsive small className="mb-0 align-middle">
+                  <CTableHead color="light">
+                    <CTableRow>
+                      <CTableHeaderCell>Airport</CTableHeaderCell>
+                      <CTableHeaderCell>Role</CTableHeaderCell>
+                      <CTableHeaderCell>Flights</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {dashboard.busiest_airports.map((row, idx) => (
+                      <CTableRow key={`${row.airport}-${row.role}-${idx}`}>
+                        <CTableDataCell>{row.airport}</CTableDataCell>
+                        <CTableDataCell>{row.role}</CTableDataCell>
+                        <CTableDataCell>{row.flight_count}</CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              </CCol>
+              <CCol md={6}>
+                <h3 className="h6 mb-2">Top Routes by Delay Type</h3>
+                <CTable bordered hover responsive small className="mb-0 align-middle">
+                  <CTableHead color="light">
+                    <CTableRow>
+                      <CTableHeaderCell>Route</CTableHeaderCell>
+                      <CTableHeaderCell>Delay Type</CTableHeaderCell>
+                      <CTableHeaderCell>Total Delay (min)</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {dashboard.top_routes_by_delay.map((row, idx) => (
+                      <CTableRow key={`${row.origin_code}-${row.dest_code}-${row.delay_type_name}-${idx}`}>
+                        <CTableDataCell>{row.origin_code} → {row.dest_code}</CTableDataCell>
+                        <CTableDataCell>{row.delay_type_name}</CTableDataCell>
+                        <CTableDataCell>{row.total_delay_minutes}</CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              </CCol>
+            </CRow>
+          ) : null}
         </CCardBody>
       </CCard>
 

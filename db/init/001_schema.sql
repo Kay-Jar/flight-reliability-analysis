@@ -60,7 +60,7 @@ CREATE TABLE dim_delay_type
     delay_type_name VARCHAR(50)
 );
 
-CREATE TABLE fact_flight 
+CREATE TABLE fact_flight
 (
     flight_id BIGINT PRIMARY KEY,
     date_id INT,
@@ -88,7 +88,11 @@ CREATE TABLE fact_flight
     CONSTRAINT fk_flight_origin_wac
         FOREIGN KEY (origin_wac) REFERENCES dim_wac(wac),
     CONSTRAINT fk_flight_dest_wac
-        FOREIGN KEY (dest_wac) REFERENCES dim_wac(wac)
+        FOREIGN KEY (dest_wac) REFERENCES dim_wac(wac),
+    CONSTRAINT chk_flight_distance_nonneg
+        CHECK (distance IS NULL OR distance >= 0),
+    CONSTRAINT chk_flight_air_time_nonneg
+        CHECK (air_time IS NULL OR air_time >= 0)
 );
 
 CREATE TABLE fact_flight_delay 
@@ -105,11 +109,25 @@ CREATE TABLE fact_flight_delay
         CHECK (delay_minutes > 0)
 );
 
-CREATE TABLE saved_preset 
+CREATE TABLE saved_preset
 (
     preset_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    preset_name VARCHAR(200),
-    filters_json TEXT,
+    preset_name VARCHAR(200) NOT NULL,
+    filters_json TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_preset_name_nonblank
+        CHECK (char_length(btrim(preset_name)) > 0),
+    CONSTRAINT chk_preset_filters_nonblank
+        CHECK (char_length(btrim(filters_json)) > 0)
+);
+
+-- Support table for the transaction in /analysis/query.
+-- The transaction will INSERT one row per successful run.
+CREATE TABLE query_log
+(
+    query_log_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ran_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_count INT NOT NULL,
+    heatmap_count INT NOT NULL
 );

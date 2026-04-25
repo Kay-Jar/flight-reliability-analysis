@@ -271,6 +271,90 @@ def avg_arr_delay_by_carrier():
     return [dict(row) for row in rows]
 
 
+@router.get('/analysis/dashboard')
+def analysis_dashboard(limit_airports: int = 15, limit_routes: int = 10):
+    # Runs Stage 3 Q2 (busiest airports, UNION) and Stage 3 Q3 (top routes by delay type,
+    # 4-way JOIN + subquery) inside a single REPEATABLE READ transaction so both panels
+    # read from the same snapshot. Also appends one row to query_log.
+    q_busiest_airports = text(
+        '''
+        (SELECT a.airport,
+                a.display_airport_name,
+                COUNT(*) AS flight_count,
+                'Origin' AS role
+           FROM fact_flight f
+           JOIN dim_airport a ON f.origin_airport_id = a.airport_id
+          GROUP BY a.airport, a.display_airport_name
+          ORDER BY flight_count DESC
+          LIMIT :limit_airports)
+        UNION
+        (SELECT a.airport,
+                a.display_airport_name,
+                COUNT(*) AS flight_count,
+                'Destination' AS role
+           FROM fact_flight f
+           JOIN dim_airport a ON f.dest_airport_id = a.airport_id
+          GROUP BY a.airport, a.display_airport_name
+          ORDER BY flight_count DESC
+          LIMIT :limit_airports)
+        '''
+    )
+
+    q_top_routes_by_delay = text(
+        '''
+        SELECT origin.airport AS origin_code,
+               dest.airport   AS dest_code,
+               dt.delay_type_name,
+               ROUND(SUM(fd.delay_minutes)::numeric, 2) AS total_delay_minutes,
+               COUNT(*)       AS delay_occurrences
+          FROM fact_flight_delay fd
+          JOIN fact_flight f     ON fd.flight_id      = f.flight_id
+          JOIN dim_airport origin ON f.origin_airport_id = origin.airport_id
+          JOIN dim_airport dest   ON f.dest_airport_id   = dest.airport_id
+          JOIN dim_delay_type dt  ON fd.delay_type_id    = dt.delay_type_id
+         WHERE (f.origin_airport_id, f.dest_airport_id) IN (
+             SELECT origin_airport_id, dest_airport_id
+               FROM fact_flight
+              WHERE arr_del15 = TRUE
+              GROUP BY origin_airport_id, dest_airport_id
+              ORDER BY COUNT(*) DESC
+              LIMIT :limit_routes
+         )
+         GROUP BY origin.airport, dest.airport, dt.delay_type_name
+         ORDER BY total_delay_minutes DESC
+         LIMIT 15
+        '''
+    )
+
+    conn = engine.connect().execution_options(isolation_level='REPEATABLE READ')
+    try:
+        with conn.begin():
+            busy_rows  = conn.execute(q_busiest_airports, {'limit_airports': limit_airports}).mappings().all()
+            route_rows = conn.execute(q_top_routes_by_delay, {'limit_routes': limit_routes}).mappings().all()
+            conn.execute(
+                text('INSERT INTO query_log (row_count, heatmap_count) VALUES (:r, :h)'),
+                {'r': len(busy_rows), 'h': len(route_rows)},
+            )
+    finally:
+        conn.close()
+
+    return {
+        'busiest_airports': [dict(r) for r in busy_rows],
+        'top_routes_by_delay': [dict(r) for r in route_rows],
+    }
+
+
+@router.get('/analysis/carriers-above-average')
+def carriers_above_average(min_flights: int = 100, limit: int = 15):
+    # Thin wrapper over the sp_carriers_above_average stored procedure.
+    # All advanced-query logic (JOIN + GROUP BY + HAVING + scalar subquery,
+    # plus an eligibility precondition and IF control flow) lives in the proc.
+    query = text("SELECT * FROM sp_carriers_above_average(:min_flights, :limit)")
+    with engine.connect() as conn:
+        rows = conn.execute(query, {"min_flights": min_flights, "limit": limit}).mappings().all()
+    return [dict(r) for r in rows]
+
+
 @router.post('/analysis/query')
 def analysis_query(payload: AnalysisQueryRequest):
     query, params, selected_metric, selected_table_view = _build_query(payload)

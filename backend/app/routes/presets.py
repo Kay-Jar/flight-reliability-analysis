@@ -52,7 +52,7 @@ def update_preset(preset_id: int, body: PresetBody):
     with engine.connect() as conn:
         row = conn.execute(text(
             "UPDATE saved_preset "
-            "SET preset_name = :name, filters_json = :filters, updated_at = NOW() "
+            "SET preset_name = :name, filters_json = :filters "
             "WHERE preset_id = :id "
             "RETURNING preset_id, preset_name, filters_json, created_at, updated_at"
         ), {"id": preset_id, "name": body.preset_name, "filters": body.filters_json}).mappings().fetchone()
