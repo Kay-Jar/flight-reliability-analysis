@@ -66,6 +66,8 @@ CREATE TABLE fact_flight
     date_id INT,
     mkt_carrier_airline_id INT,
     mkt_carrier_fl_num INT,
+    op_carrier_airline_id INT,
+    branded_code_share VARCHAR(32),
     origin_airport_id INT,
     dest_airport_id INT,
     origin_wac INT,
@@ -81,6 +83,8 @@ CREATE TABLE fact_flight
         FOREIGN KEY (date_id) REFERENCES dim_date(date_id),
     CONSTRAINT fk_flight_carrier
         FOREIGN KEY (mkt_carrier_airline_id) REFERENCES dim_carrier(airline_id),
+    CONSTRAINT fk_flight_op_carrier
+        FOREIGN KEY (op_carrier_airline_id) REFERENCES dim_carrier(airline_id),
     CONSTRAINT fk_flight_origin_airport
         FOREIGN KEY (origin_airport_id) REFERENCES dim_airport(airport_id),
     CONSTRAINT fk_flight_dest_airport

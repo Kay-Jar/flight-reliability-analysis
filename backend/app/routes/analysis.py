@@ -8,6 +8,7 @@ router = APIRouter()
 
 class AnalysisQueryRequest(BaseModel):
     airlines: list[str] = Field(default_factory=list)
+    op_airlines: list[str] = Field(default_factory=list)
     airports: list[str] = Field(default_factory=list)
     delay_types: list[str] = Field(default_factory=list)
     metric: str = 'avg_arr_delay'
@@ -42,6 +43,16 @@ def _build_filter_clauses(filters: AnalysisQueryRequest):
     if filters.airlines:
         where_clauses.append('dc.carrier_name = ANY(:airlines)')
         params['airlines'] = filters.airlines
+
+    if filters.op_airlines:
+        # Subquery rather than a join so this works for every caller of _build_filter_clauses
+        # (carrier_summary, raw_flights, and heatmap queries) without forcing a new join.
+        where_clauses.append(
+            'ff.op_carrier_airline_id IN ('
+            'SELECT airline_id FROM dim_carrier WHERE carrier_name = ANY(:op_airlines)'
+            ')'
+        )
+        params['op_airlines'] = filters.op_airlines
 
     if filters.airports:
         # Airport filters intentionally match flights where the selected airport is either origin or destination.
@@ -82,6 +93,8 @@ def _build_query(filters: AnalysisQueryRequest):
                 ff.flight_id AS flight_id,
                 dd.full_date AS full_date,
                 dc.carrier_name AS carrier_name,
+                op_dc.carrier_name AS op_carrier_name,
+                ff.branded_code_share AS branded_code_share,
                 origin_airport.airport AS origin_airport,
                 dest_airport.airport AS destination_airport,
                 ff.arr_delay AS arr_delay,
@@ -91,6 +104,8 @@ def _build_query(filters: AnalysisQueryRequest):
             FROM fact_flight ff
             JOIN dim_carrier dc
                 ON ff.mkt_carrier_airline_id = dc.airline_id
+            LEFT JOIN dim_carrier op_dc
+                ON ff.op_carrier_airline_id = op_dc.airline_id
             JOIN dim_date dd
                 ON ff.date_id = dd.date_id
             LEFT JOIN dim_airport origin_airport
@@ -186,6 +201,34 @@ def list_airline_filters(q: str = Query(default='', max_length=100)):
         FROM dim_carrier dc
         WHERE dc.carrier_name IS NOT NULL
           AND (:search_term = '' OR dc.carrier_name ILIKE :search_pattern)
+        ORDER BY dc.carrier_name
+        '''
+    )
+    params = {
+        'search_term': search_term,
+        'search_pattern': f'%{search_term}%',
+    }
+
+    with engine.connect() as conn:
+        rows = conn.execute(query, params).mappings().all()
+
+    return [row['value'] for row in rows if row.get('value')]
+
+
+@router.get('/analysis/filters/op-airlines')
+def list_op_airline_filters(q: str = Query(default='', max_length=100)):
+    # Constrained via EXISTS to carriers that actually appear as operators in fact_flight,
+    # so the dropdown can't surface dead-end picks (the Mall Airways problem in reverse).
+    search_term = q.strip()
+    query = text(
+        '''
+        SELECT DISTINCT dc.carrier_name AS value
+        FROM dim_carrier dc
+        WHERE dc.carrier_name IS NOT NULL
+          AND (:search_term = '' OR dc.carrier_name ILIKE :search_pattern)
+          AND EXISTS (
+            SELECT 1 FROM fact_flight ff WHERE ff.op_carrier_airline_id = dc.airline_id
+          )
         ORDER BY dc.carrier_name
         '''
     )

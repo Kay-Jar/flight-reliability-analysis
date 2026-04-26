@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from 'react'
 
 export const defaultFilters = {
   airlines: [],
+  op_airlines: [],
   airports: [],
   delay_types: [],
   metric: 'avg_arr_delay',

@@ -65,6 +65,20 @@ const DEFAULT_AIRLINE_OPTIONS = [
   'Allegiant Air',
   'Hawaiian Airlines Inc.',
 ]
+// Defaults skew toward regionals/codeshares since the mainlines above already cover the
+// marketing-carrier surface. Sorted roughly by flight volume from the loaded dataset.
+const DEFAULT_OP_AIRLINE_OPTIONS = [
+  'SkyWest Airlines Inc.',
+  'Republic Airline',
+  'Simmons Airlines',
+  'PSA Airlines Inc.',
+  'Pinnacle Airlines Inc.',
+  'Piedmont Airlines',
+  'Horizon Air',
+  'Mesa Airlines Inc.',
+  'Commutair Aka Champlain Enterprises - Inc.',
+  'GoJet Airlines LLC d/b/a United Express',
+]
 const DEFAULT_AIRPORT_OPTIONS = [
   'ATL',
   'ORD',
@@ -377,7 +391,10 @@ const AppSidebar = () => {
   }, [])
 
   const activeFilterCount =
-    filters.airlines.length + filters.airports.length + filters.delay_types.length
+    filters.airlines.length +
+    filters.op_airlines.length +
+    filters.airports.length +
+    filters.delay_types.length
 
   const canResetFilters =
     activeFilterCount > 0 ||
@@ -429,6 +446,18 @@ const AppSidebar = () => {
             onToggle={(value) =>
               updateFilters({
                 airlines: toggleValue(filters.airlines, value),
+              })
+            }
+          />
+
+          <SearchableMultiSelect
+            label="Operating Airlines"
+            endpoint="/analysis/filters/op-airlines"
+            selectedValues={filters.op_airlines}
+            defaultOptions={DEFAULT_OP_AIRLINE_OPTIONS}
+            onToggle={(value) =>
+              updateFilters({
+                op_airlines: toggleValue(filters.op_airlines, value),
               })
             }
           />

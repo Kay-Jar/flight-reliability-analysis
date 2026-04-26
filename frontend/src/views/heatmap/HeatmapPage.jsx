@@ -122,6 +122,10 @@ const buildHeatmapMatrix = (points) => {
 const buildActiveFilterChips = (filters) => {
   const chips = [
     ...filters.airlines.map((value) => ({ key: `airline-${value}`, label: `Airline: ${value}` })),
+    ...filters.op_airlines.map((value) => ({
+      key: `op-airline-${value}`,
+      label: `Operating Airline: ${value}`,
+    })),
     ...filters.airports.map((value) => ({ key: `airport-${value}`, label: `Airport: ${value}` })),
     ...filters.delay_types.map((value) => ({
       key: `delay-${value}`,
@@ -141,10 +145,14 @@ const SUMMARY_TABLE_COLUMNS = [
   { key: 'total_flights', label: 'Total Flights (count)' },
 ]
 
+const ROW_DISPLAY_LIMIT = 100
+
 const RAW_FLIGHTS_TABLE_COLUMNS = [
   { key: 'flight_id', label: 'Flight ID' },
   { key: 'full_date', label: 'Date' },
-  { key: 'carrier_name', label: 'Carrier' },
+  { key: 'carrier_name', label: 'Marketing Carrier' },
+  { key: 'op_carrier_name', label: 'Operating Carrier' },
+  { key: 'branded_code_share', label: 'Brand' },
   { key: 'origin_airport', label: 'Origin' },
   { key: 'destination_airport', label: 'Destination' },
   { key: 'arr_delay', label: 'Arrival Delay (min)' },
@@ -236,6 +244,7 @@ const HeatmapPanel = React.memo(({ heatmapData, heatmapMatrix, metric }) => {
 const HeatmapPage = () => {
   const { filters, queryMode } = useFilters()
   const [rows, setRows] = useState([])
+  const [showAllRows, setShowAllRows] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [hasQueried, setHasQueried] = useState(false)
@@ -243,8 +252,10 @@ const HeatmapPage = () => {
   const [heatmapData, setHeatmapData] = useState(null)
   const [summary, setSummary] = useState(null)
   const [worstCarriers, setWorstCarriers] = useState([])
-  const [worstCarriersLoading, setWorstCarriersLoading] = useState(false)
-  const [worstCarriersError, setWorstCarriersError] = useState('')
+  const worstCarrierNames = useMemo(
+    () => new Set(worstCarriers.map((c) => c.carrier_name)),
+    [worstCarriers],
+  )
   const [dashboard, setDashboard] = useState(null)
   const [dashboardLoading, setDashboardLoading] = useState(false)
   const [dashboardError, setDashboardError] = useState('')
@@ -257,6 +268,7 @@ const HeatmapPage = () => {
   const buildRequestPayload = useCallback(
     () => ({
       airlines: filters.airlines,
+      op_airlines: filters.op_airlines,
       airports: filters.airports,
       delay_types: filters.delay_types,
       metric: filters.metric,
@@ -271,6 +283,7 @@ const HeatmapPage = () => {
     setSummary(null)
     setHasQueried(true)
     setQuerySucceeded(false)
+    setShowAllRows(false)
 
     try {
       const response = await fetch(`${API_BASE_URL}/analysis/query`, {
@@ -311,6 +324,22 @@ const HeatmapPage = () => {
     } finally {
       setIsLoading(false)
     }
+
+    // Refresh the fleet-wide "worst carriers" reference set used to annotate the
+    // Carrier Summary table. Fleet-level by design (the SP compares to the global avg),
+    // so it doesn't take filters and never blocks the main query path.
+    try {
+      const spResponse = await fetch(
+        `${API_BASE_URL}/analysis/carriers-above-average?min_flights=100&limit=15`,
+      )
+      if (spResponse.ok) {
+        setWorstCarriers(await spResponse.json())
+      } else {
+        setWorstCarriers([])
+      }
+    } catch {
+      setWorstCarriers([])
+    }
   }, [buildRequestPayload])
 
   const loadDashboard = useCallback(async () => {
@@ -329,25 +358,6 @@ const HeatmapPage = () => {
       setDashboardError(err instanceof Error ? err.message : 'Failed to load dashboard.')
     } finally {
       setDashboardLoading(false)
-    }
-  }, [])
-
-  const loadWorstCarriers = useCallback(async () => {
-    setWorstCarriersLoading(true)
-    setWorstCarriersError('')
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/analysis/carriers-above-average?min_flights=100&limit=15`,
-      )
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`)
-      }
-      setWorstCarriers(await response.json())
-    } catch (err) {
-      setWorstCarriers([])
-      setWorstCarriersError(err instanceof Error ? err.message : 'Failed to load carriers.')
-    } finally {
-      setWorstCarriersLoading(false)
     }
   }, [])
 
@@ -434,6 +444,13 @@ const HeatmapPage = () => {
               </CCol>
             </CRow>
 
+            {activeTableView === 'carrier_summary' && worstCarrierNames.size > 0 ? (
+              <div className="small text-medium-emphasis mb-2">
+                Highlighted rows have an average arrival delay worse than the global
+                all-flights average.
+              </div>
+            ) : null}
+
             <div
               className="table-scroll-container mb-0"
               style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'hidden' }}
@@ -456,15 +473,43 @@ const HeatmapPage = () => {
                       </CTableDataCell>
                     </CTableRow>
                   ) : rows.length > 0 ? (
-                    rows.map((row, index) => (
-                      <CTableRow key={`${row.flight_id || row.carrier_name || 'row'}-${index}`}>
-                        {tableColumns.map((column) => (
-                          <CTableDataCell key={`${column.key}-${index}`}>
-                            {displayValue(row[column.key])}
+                    <>
+                      {(showAllRows ? rows : rows.slice(0, ROW_DISPLAY_LIMIT)).map((row, index) => {
+                        const isWorst =
+                          activeTableView === 'carrier_summary' &&
+                          worstCarrierNames.has(row.carrier_name)
+                        return (
+                          <CTableRow
+                            key={`${row.flight_id || row.carrier_name || 'row'}-${index}`}
+                            color={isWorst ? 'warning' : undefined}
+                          >
+                            {tableColumns.map((column) => (
+                              <CTableDataCell key={`${column.key}-${index}`}>
+                                {displayValue(row[column.key])}
+                              </CTableDataCell>
+                            ))}
+                          </CTableRow>
+                        )
+                      })}
+                      {!showAllRows && rows.length > ROW_DISPLAY_LIMIT ? (
+                        <CTableRow>
+                          <CTableDataCell
+                            colSpan={tableColumns.length}
+                            className="text-center text-medium-emphasis py-3"
+                          >
+                            Showing {ROW_DISPLAY_LIMIT} of {rows.length}.{' '}
+                            <CButton
+                              size="sm"
+                              color="link"
+                              className="p-0 align-baseline"
+                              onClick={() => setShowAllRows(true)}
+                            >
+                              Show all ({rows.length - ROW_DISPLAY_LIMIT} more rows)
+                            </CButton>
                           </CTableDataCell>
-                        ))}
-                      </CTableRow>
-                    ))
+                        </CTableRow>
+                      ) : null}
+                    </>
                   ) : !hasQueried ? (
                     <CTableRow>
                       <CTableDataCell
@@ -495,49 +540,11 @@ const HeatmapPage = () => {
 
       <CCard className="shadow-sm">
         <CCardHeader>
-          <strong>Worst Carriers (Stored Procedure)</strong>
-        </CCardHeader>
-        <CCardBody>
-          <CButton color="primary" onClick={loadWorstCarriers} disabled={worstCarriersLoading}>
-            {worstCarriersLoading ? 'Loading...' : 'Run Stored Procedure'}
-          </CButton>
-          {worstCarriersError ? (
-            <CAlert color="danger" className="mt-3 mb-0">
-              {worstCarriersError}
-            </CAlert>
-          ) : null}
-          {worstCarriers.length > 0 ? (
-            <CTable bordered hover responsive className="mb-0 mt-3 align-middle">
-              <CTableHead color="light">
-                <CTableRow>
-                  <CTableHeaderCell>Carrier</CTableHeaderCell>
-                  <CTableHeaderCell>Carrier Name</CTableHeaderCell>
-                  <CTableHeaderCell>Total Flights</CTableHeaderCell>
-                  <CTableHeaderCell>Avg Arrival Delay (min)</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {worstCarriers.map((row) => (
-                  <CTableRow key={row.carrier}>
-                    <CTableDataCell>{row.carrier}</CTableDataCell>
-                    <CTableDataCell>{row.carrier_name}</CTableDataCell>
-                    <CTableDataCell>{row.total_flights}</CTableDataCell>
-                    <CTableDataCell>{row.avg_arr_delay}</CTableDataCell>
-                  </CTableRow>
-                ))}
-              </CTableBody>
-            </CTable>
-          ) : null}
-        </CCardBody>
-      </CCard>
-
-      <CCard className="shadow-sm">
-        <CCardHeader>
-          <strong>Cross-Query Dashboard (Transaction)</strong>
+          <strong>Network Hotspots</strong>
         </CCardHeader>
         <CCardBody>
           <CButton color="primary" onClick={loadDashboard} disabled={dashboardLoading}>
-            {dashboardLoading ? 'Loading...' : 'Run Transaction'}
+            {dashboardLoading ? 'Loading...' : 'Load Snapshot'}
           </CButton>
           {dashboardError ? (
             <CAlert color="danger" className="mt-3 mb-0">
