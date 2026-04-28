@@ -359,37 +359,48 @@ def _call_proc(dbapi_conn, sql: str) -> list[dict]:
 
 @router.get('/analysis/dashboard')
 def analysis_dashboard(limit_airports: int = 15, limit_routes: int = 10):
-    # Stage 3 Q2 / Q3 live as stored procedures in db/init/004_procedures.sql
-    # (sp_busiest_airports, sp_top_delay_routes). Both CALLs run inside a
-    # single REPEATABLE READ transaction so both panels share a snapshot, and
-    # one row is appended to query_log on success.
-    conn = engine.connect().execution_options(isolation_level='REPEATABLE READ')
+    # Implements the transaction documented in
+    # doc/TransactionTriggerConstraintsSP.sql verbatim: REPEATABLE READ
+    # snapshot, two CALL reads (Stage 3 Q2 + Q3), one audit INSERT into
+    # query_log, COMMIT. We issue START TRANSACTION / COMMIT as raw SQL on
+    # the underlying DBAPI connection so the wire-level commands mirror the
+    # doc instead of going through SQLAlchemy's transaction abstraction.
+    raw_conn = engine.raw_connection()
     try:
-        with conn.begin():
-            dbapi_conn = conn.connection
-            busy_all = _call_proc(dbapi_conn, 'CALL sp_busiest_airports()')
-            route_rows = _call_proc(dbapi_conn, 'CALL sp_top_delay_routes()')
+        with raw_conn.cursor() as cursor:
+            cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+            cursor.execute('START TRANSACTION')
+            try:
+                busy_all = _call_proc(raw_conn, 'CALL sp_busiest_airports()')
+                route_rows = _call_proc(raw_conn, 'CALL sp_top_delay_routes()')
 
-            # SP returns Origin and Destination interleaved; take top-N per role.
-            origins = sorted(
-                (r for r in busy_all if r['role'] == 'Origin'),
-                key=lambda r: r['flight_count'], reverse=True,
-            )[:limit_airports]
-            dests = sorted(
-                (r for r in busy_all if r['role'] == 'Destination'),
-                key=lambda r: r['flight_count'], reverse=True,
-            )[:limit_airports]
-            busiest = origins + dests
+                # SP returns Origin and Destination interleaved; take top-N per role.
+                origins = sorted(
+                    (r for r in busy_all if r['role'] == 'Origin'),
+                    key=lambda r: r['flight_count'], reverse=True,
+                )[:limit_airports]
+                dests = sorted(
+                    (r for r in busy_all if r['role'] == 'Destination'),
+                    key=lambda r: r['flight_count'], reverse=True,
+                )[:limit_airports]
+                busiest = origins + dests
 
-            # Retroactively apply LIMIT 15 in Python (so we don't flood the output page)
-            top_routes = route_rows[:15]
+                # Retroactively apply LIMIT 15 in Python (so we don't flood the output page)
+                top_routes = route_rows[:15]
 
-            conn.execute(
-                text('INSERT INTO query_log (row_count, heatmap_count) VALUES (:r, :h)'),
-                {'r': len(busiest), 'h': len(top_routes)},
-            )
+                cursor.execute(
+                    'INSERT INTO query_log (row_count, heatmap_count) VALUES (%s, %s)',
+                    (len(busiest), len(top_routes)),
+                )
+                cursor.execute('COMMIT')
+            except Exception:
+                try:
+                    cursor.execute('ROLLBACK')
+                except Exception:
+                    pass
+                raise
     finally:
-        conn.close()
+        raw_conn.close()
 
     return {
         'busiest_airports': busiest,

@@ -114,4 +114,12 @@ CREATE TABLE saved_preset (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- 9. query_log (audit row inserted by /analysis/dashboard inside its REPEATABLE READ transaction)
+CREATE TABLE query_log (
+    query_log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ran_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    row_count INT NOT NULL,
+    heatmap_count INT NOT NULL
+);
 ```

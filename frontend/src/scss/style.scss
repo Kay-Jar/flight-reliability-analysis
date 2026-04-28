@@ -56,6 +56,25 @@ body {
   min-height: calc(3rem + 1px); // stylelint-disable-line function-disallowed-list
 }
 
+.sidebar,
+.sidebar[data-coreui-theme="dark"] {
+  &,
+  .text-medium-emphasis,
+  .text-body,
+  .text-body-secondary,
+  .text-body-tertiary,
+  .text-muted,
+  .small,
+  small,
+  .form-label,
+  .form-check-label,
+  .form-check-input ~ .form-check-label,
+  hr,
+  label {
+    color: #fff !important;
+  }
+}
+
 .analytics-filter-options {
   max-height: 15rem;
   overflow-y: auto;
