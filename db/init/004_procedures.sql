@@ -54,3 +54,72 @@ WHERE (f.origin_airport_id, f.dest_airport_id) IN (
 )
 GROUP BY origin.airport, dest.airport, dt.delay_type_name
 ORDER BY total_delay_minutes DESC;
+
+-- Query 4: classify carriers into delay tiers using a cursor + IF/ELSEIF.
+DELIMITER //
+CREATE PROCEDURE sp_classify_carrier_delay_tiers()
+BEGIN
+    DECLARE v_done INT DEFAULT 0;
+    DECLARE v_carrier VARCHAR(10);
+    DECLARE v_carrier_name VARCHAR(200);
+    DECLARE v_total_flights INT;
+    DECLARE v_avg_delay DECIMAL(10,2);
+    DECLARE v_overall_avg DECIMAL(10,2);
+    DECLARE v_tier VARCHAR(20);
+
+    DECLARE cur_carriers CURSOR FOR
+        SELECT c.carrier,
+               c.carrier_name,
+               COUNT(*) AS total_flights,
+               ROUND(AVG(f.arr_delay), 2) AS avg_arr_delay
+        FROM fact_flight f
+        JOIN dim_carrier c ON f.mkt_carrier_airline_id = c.airline_id
+        WHERE f.arr_delay IS NOT NULL
+        GROUP BY c.carrier, c.carrier_name
+        HAVING COUNT(*) > 100;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;
+
+    SELECT AVG(arr_delay) INTO v_overall_avg
+    FROM fact_flight WHERE arr_delay IS NOT NULL;
+
+    DROP TEMPORARY TABLE IF EXISTS tmp_carrier_tiers;
+    CREATE TEMPORARY TABLE tmp_carrier_tiers (
+        carrier VARCHAR(10),
+        carrier_name VARCHAR(200),
+        total_flights INT,
+        avg_arr_delay DECIMAL(10,2),
+        tier VARCHAR(20)
+    );
+
+    OPEN cur_carriers;
+    read_loop: LOOP
+        FETCH cur_carriers INTO v_carrier, v_carrier_name, v_total_flights, v_avg_delay;
+        IF v_done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF v_avg_delay < v_overall_avg - 5 THEN
+            SET v_tier = 'Excellent';
+        ELSEIF v_avg_delay < v_overall_avg THEN
+            SET v_tier = 'Good';
+        ELSEIF v_avg_delay < v_overall_avg + 5 THEN
+            SET v_tier = 'Average';
+        ELSE
+            SET v_tier = 'Poor';
+        END IF;
+
+        INSERT INTO tmp_carrier_tiers
+        VALUES (v_carrier, v_carrier_name, v_total_flights, v_avg_delay, v_tier);
+    END LOOP;
+    CLOSE cur_carriers;
+
+    SELECT carrier, carrier_name, total_flights, avg_arr_delay, tier,
+           ROUND(avg_arr_delay - v_overall_avg, 2) AS delay_vs_overall
+    FROM tmp_carrier_tiers
+    ORDER BY FIELD(tier, 'Poor', 'Average', 'Good', 'Excellent'),
+             avg_arr_delay DESC;
+
+    DROP TEMPORARY TABLE IF EXISTS tmp_carrier_tiers;
+END //
+DELIMITER ;

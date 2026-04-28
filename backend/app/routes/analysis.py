@@ -11,8 +11,12 @@ class AnalysisQueryRequest(BaseModel):
     op_airlines: list[str] = Field(default_factory=list)
     airports: list[str] = Field(default_factory=list)
     delay_types: list[str] = Field(default_factory=list)
+    tiers: list[str] = Field(default_factory=list)
     metric: str = 'avg_arr_delay'
     table_view: str = 'carrier_summary'
+
+
+VALID_TIERS = {'Excellent', 'Good', 'Average', 'Poor'}
 
 
 ALLOWED_METRICS = {
@@ -36,10 +40,17 @@ def _normalize_table_view(table_view: str) -> str:
     return table_view if table_view in ALLOWED_TABLE_VIEWS else 'carrier_summary'
 
 
-def _build_filter_clauses(filters: AnalysisQueryRequest):
+def _build_filter_clauses(filters: AnalysisQueryRequest, tier_carriers: list[str] | None = None):
     where_clauses = ['ff.arr_delay IS NOT NULL']
     params: dict[str, object] = {}
     bindparams: list = []
+
+    if filters.tiers and tier_carriers is not None:
+        # tier_carriers is the list of carrier_names whose tier matches filters.tiers,
+        # resolved by the route via sp_classify_carrier_delay_tiers().
+        where_clauses.append('dc.carrier_name IN :tier_carriers')
+        params['tier_carriers'] = tier_carriers
+        bindparams.append(bindparam('tier_carriers', expanding=True))
 
     if filters.airlines:
         where_clauses.append('dc.carrier_name IN :airlines')
@@ -79,7 +90,7 @@ def _build_filter_clauses(filters: AnalysisQueryRequest):
     return where_clauses, params, bindparams
 
 
-def _build_query(filters: AnalysisQueryRequest):
+def _build_query(filters: AnalysisQueryRequest, tier_carriers: list[str] | None = None):
     selected_metric = filters.metric if filters.metric in ALLOWED_METRICS else 'avg_arr_delay'
     selected_table_view = _normalize_table_view(filters.table_view)
 
@@ -89,7 +100,7 @@ def _build_query(filters: AnalysisQueryRequest):
         'COUNT(*) AS total_flights',
     ]
 
-    where_clauses, params, bindparams = _build_filter_clauses(filters)
+    where_clauses, params, bindparams = _build_filter_clauses(filters, tier_carriers)
 
     if selected_table_view == 'raw_flights':
         raw_query = text(
@@ -151,8 +162,12 @@ def _build_query(filters: AnalysisQueryRequest):
     return query, params, selected_metric, selected_table_view
 
 
-def _build_heatmap_query(filters: AnalysisQueryRequest, selected_metric: str):
-    where_clauses, params, bindparams = _build_filter_clauses(filters)
+def _build_heatmap_query(
+    filters: AnalysisQueryRequest,
+    selected_metric: str,
+    tier_carriers: list[str] | None = None,
+):
+    where_clauses, params, bindparams = _build_filter_clauses(filters, tier_carriers)
     heatmap_where_clauses = list(where_clauses)
     heatmap_params = dict(params)
     heatmap_bindparams = list(bindparams)
@@ -376,16 +391,57 @@ def carriers_above_average(min_flights: int = 100, limit: int = 15):
     return filtered[:limit]
 
 
+@router.get('/analysis/carrier-tiers')
+def carrier_tiers():
+    # Q4 lives in the sp_classify_carrier_delay_tiers stored procedure
+    # (db/init/004_procedures.sql). Cursor + IF/ELSEIF buckets carriers into
+    # Excellent/Good/Average/Poor relative to the global avg arrival delay.
+    with engine.connect() as conn:
+        rows = conn.execute(text('CALL sp_classify_carrier_delay_tiers()')).mappings().all()
+    return [dict(r) for r in rows]
+
+
+def _resolve_tier_carriers(requested_tiers: list[str]) -> list[str]:
+    valid = [t for t in requested_tiers if t in VALID_TIERS]
+    if not valid:
+        return []
+    with engine.connect() as conn:
+        rows = conn.execute(text('CALL sp_classify_carrier_delay_tiers()')).mappings().all()
+    return [r['carrier_name'] for r in rows if r['tier'] in valid]
+
+
+def _empty_query_response(payload: AnalysisQueryRequest) -> dict:
+    selected_metric = payload.metric if payload.metric in ALLOWED_METRICS else 'avg_arr_delay'
+    return {
+        'filters_applied': payload.model_dump(),
+        'summary': {
+            'metric': selected_metric,
+            'table_view': _normalize_table_view(payload.table_view),
+            'row_count': 0,
+            'heatmap_point_count': 0,
+        },
+        'table_data': [],
+        'heatmap_data': [],
+    }
+
+
 @router.post('/analysis/query')
 def analysis_query(payload: AnalysisQueryRequest):
-    query, params, selected_metric, selected_table_view = _build_query(payload)
+    tier_carriers: list[str] | None = None
+    if payload.tiers:
+        tier_carriers = _resolve_tier_carriers(payload.tiers)
+        if not tier_carriers:
+            # Tiers requested but no carriers fall into them — short-circuit empty.
+            return _empty_query_response(payload)
+
+    query, params, selected_metric, selected_table_view = _build_query(payload, tier_carriers)
 
     with engine.connect() as conn:
         rows = conn.execute(query, params).mappings().all()
 
     table_data = [dict(row) for row in rows]
 
-    heatmap_query, heatmap_params = _build_heatmap_query(payload, selected_metric)
+    heatmap_query, heatmap_params = _build_heatmap_query(payload, selected_metric, tier_carriers)
 
     with engine.connect() as conn:
         heatmap_rows = conn.execute(heatmap_query, heatmap_params).mappings().all()

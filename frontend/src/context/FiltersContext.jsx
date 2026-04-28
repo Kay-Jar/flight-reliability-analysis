@@ -5,6 +5,7 @@ export const defaultFilters = {
   op_airlines: [],
   airports: [],
   delay_types: [],
+  tiers: [],
   metric: 'avg_arr_delay',
   table_view: 'carrier_summary',
 }

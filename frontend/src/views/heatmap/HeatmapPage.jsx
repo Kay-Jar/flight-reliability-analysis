@@ -131,6 +131,7 @@ const buildActiveFilterChips = (filters) => {
       key: `delay-${value}`,
       label: `Delay Type: ${value}`,
     })),
+    ...filters.tiers.map((value) => ({ key: `tier-${value}`, label: `Tier: ${value}` })),
   ]
 
   chips.push({ key: 'metric', label: `Metric: ${filters.metric}` })
@@ -139,10 +140,18 @@ const buildActiveFilterChips = (filters) => {
   return chips
 }
 
+const TIER_BADGE_COLOR = {
+  Excellent: 'success',
+  Good: 'info',
+  Average: 'warning',
+  Poor: 'danger',
+}
+
 const SUMMARY_TABLE_COLUMNS = [
   { key: 'carrier_name', label: 'Carrier Name' },
   { key: 'avg_arr_delay', label: 'Average Arrival Delay (min)' },
   { key: 'total_flights', label: 'Total Flights (count)' },
+  { key: 'tier', label: 'Tier' },
 ]
 
 const ROW_DISPLAY_LIMIT = 100
@@ -256,6 +265,16 @@ const HeatmapPage = () => {
     () => new Set(worstCarriers.map((c) => c.carrier_name)),
     [worstCarriers],
   )
+  const [carrierTiers, setCarrierTiers] = useState([])
+  const carrierTierMap = useMemo(() => {
+    const map = new Map()
+    carrierTiers.forEach((entry) => {
+      if (entry?.carrier_name) {
+        map.set(entry.carrier_name, entry.tier)
+      }
+    })
+    return map
+  }, [carrierTiers])
   const [dashboard, setDashboard] = useState(null)
   const [dashboardLoading, setDashboardLoading] = useState(false)
   const [dashboardError, setDashboardError] = useState('')
@@ -271,6 +290,7 @@ const HeatmapPage = () => {
       op_airlines: filters.op_airlines,
       airports: filters.airports,
       delay_types: filters.delay_types,
+      tiers: filters.tiers,
       metric: filters.metric,
       table_view: filters.table_view,
     }),
@@ -339,6 +359,19 @@ const HeatmapPage = () => {
       }
     } catch {
       setWorstCarriers([])
+    }
+
+    // Fleet-wide tier classification (sp_classify_carrier_delay_tiers) — drives
+    // the Tier column in the carrier summary table.
+    try {
+      const tierResponse = await fetch(`${API_BASE_URL}/analysis/carrier-tiers`)
+      if (tierResponse.ok) {
+        setCarrierTiers(await tierResponse.json())
+      } else {
+        setCarrierTiers([])
+      }
+    } catch {
+      setCarrierTiers([])
     }
   }, [buildRequestPayload])
 
@@ -478,6 +511,10 @@ const HeatmapPage = () => {
                         const isWorst =
                           activeTableView === 'carrier_summary' &&
                           worstCarrierNames.has(row.carrier_name)
+                        const rowTier =
+                          activeTableView === 'carrier_summary'
+                            ? carrierTierMap.get(row.carrier_name)
+                            : undefined
                         return (
                           <CTableRow
                             key={`${row.flight_id || row.carrier_name || 'row'}-${index}`}
@@ -485,7 +522,17 @@ const HeatmapPage = () => {
                           >
                             {tableColumns.map((column) => (
                               <CTableDataCell key={`${column.key}-${index}`}>
-                                {displayValue(row[column.key])}
+                                {column.key === 'tier' ? (
+                                  rowTier ? (
+                                    <CBadge color={TIER_BADGE_COLOR[rowTier] || 'secondary'}>
+                                      {rowTier}
+                                    </CBadge>
+                                  ) : (
+                                    <span className="text-medium-emphasis">-</span>
+                                  )
+                                ) : (
+                                  displayValue(row[column.key])
+                                )}
                               </CTableDataCell>
                             ))}
                           </CTableRow>

@@ -394,7 +394,8 @@ const AppSidebar = () => {
     filters.airlines.length +
     filters.op_airlines.length +
     filters.airports.length +
-    filters.delay_types.length
+    filters.delay_types.length +
+    filters.tiers.length
 
   const canResetFilters =
     activeFilterCount > 0 ||
@@ -512,6 +513,33 @@ const AppSidebar = () => {
             {!delayTypesLoading && !delayTypesError && delayTypeOptions.length === 0 ? (
               <div className="small text-medium-emphasis">No delay types available.</div>
             ) : null}
+          </div>
+
+          <div className="mb-4">
+            <CFormLabel className="fw-semibold mb-2">Carrier Delay Tier</CFormLabel>
+            <div className="d-flex flex-wrap gap-2">
+              {['Excellent', 'Good', 'Average', 'Poor'].map((tier) => {
+                const selected = filters.tiers.includes(tier)
+                return (
+                  <CButton
+                    key={`tier-${tier}`}
+                    size="sm"
+                    color={selected ? 'primary' : 'light'}
+                    variant={selected ? undefined : 'outline'}
+                    onClick={() =>
+                      updateFilters({
+                        tiers: toggleValue(filters.tiers, tier),
+                      })
+                    }
+                  >
+                    {tier}
+                  </CButton>
+                )
+              })}
+            </div>
+            <div className="small text-medium-emphasis mt-1">
+              Tiers are computed fleet-wide vs. the global average arrival delay.
+            </div>
           </div>
 
           <div className="mb-4">
