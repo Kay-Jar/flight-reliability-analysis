@@ -1,14 +1,21 @@
 # Flight Reliability Analysis Platform
 
-A full-stack data analytics platform for exploring U.S. flight delay patterns. The application provides interactive filtering, aggregation, and visualization of flight performance using a scalable backend and a modern React-based frontend.
+A full-stack data analytics platform for exploring U.S. flight delay patterns. The application provides interactive filtering, aggregation, and visualization of flight performance using a scalable backend and a modern React-based frontend. This application aims to solve the problem of having limited tools for efficiently analyzing and comparing aviation data across airlines, airports, and time periods.
 
 ---
 
 ## Live Demo
 
-http://35.238.105.121:3000/#/heatmap
+Current: http://35.224.149.142/#/heatmap (deploy/gcp-mysql-v2 branch)
+Legacy Version: http://35.238.105.121:3000/#/heatmap (deploy/gcp-mysql branch)
 
 ---
+
+## Video Link
+
+https://drive.google.com/file/d/1EhQSBxosYcxledw47ajsMI7JrOGTz9b3/view 
+
+--
 
 ## Overview
 
