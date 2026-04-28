@@ -52,6 +52,20 @@ const makeSafeId = (value) =>
     .replace(/[^a-z0-9]+/g, '-')
 
 const getSearchPlaceholder = (label) => `Search ${label.toLowerCase()}...`
+
+const pad2 = (n) => String(n).padStart(2, '0')
+const formatPresetTimestamp = (raw) => {
+  if (!raw) return ''
+  const value = typeof raw === 'string' && !raw.endsWith('Z') && !raw.includes('+')
+    ? `${raw.replace(' ', 'T')}Z`
+    : raw
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  return (
+    `${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}/${d.getFullYear()} ` +
+    `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`
+  )
+}
 const DISPLAY_RESULT_LIMIT = 50
 const DEFAULT_AIRLINE_OPTIONS = [
   'Delta Air Lines Inc.',
@@ -611,14 +625,22 @@ const AppSidebar = () => {
                   key={preset.preset_id}
                   className="d-flex align-items-center justify-content-between py-1"
                 >
-                  <span
-                    className="text-truncate small"
-                    style={{ cursor: 'pointer', flex: 1 }}
+                  <div
+                    className="text-truncate"
+                    style={{ cursor: 'pointer', flex: 1, minWidth: 0 }}
                     title={`Load "${preset.preset_name}"`}
                     onClick={() => loadPreset(preset)}
                   >
-                    {preset.preset_name}
-                  </span>
+                    <div className="text-truncate small">{preset.preset_name}</div>
+                    {preset.updated_at ? (
+                      <div
+                        className="text-medium-emphasis text-truncate"
+                        style={{ fontSize: '0.7rem', lineHeight: 1.1 }}
+                      >
+                        {formatPresetTimestamp(preset.updated_at)}
+                      </div>
+                    ) : null}
+                  </div>
                   <div className="d-flex gap-1 ms-1 flex-shrink-0">
                     <CButton
                       color="info"
