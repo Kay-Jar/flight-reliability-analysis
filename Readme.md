@@ -1,6 +1,6 @@
 # Flight Reliability Analysis Platform
 
-A full-stack data analytics platform for exploring U.S. flight delay patterns. The application provides interactive filtering, aggregation, and visualization of flight performance using a scalable backend and a modern React-based frontend.
+A full-stack data analytics platform for exploring U.S. flight delay patterns. The application provides interactive filtering, aggregation, and visualization of flight performance using a scalable backend and a modern React-based frontend. This application aims to solve the problem of having limited tools for efficiently analyzing and comparing aviation data across airlines, airports, and time periods.
 
 ---
 
