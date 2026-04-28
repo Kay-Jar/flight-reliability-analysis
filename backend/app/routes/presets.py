@@ -35,13 +35,16 @@ def list_presets():
 def create_preset(body: PresetBody):
     _validate_filters_json(body.filters_json)
 
-    with engine.connect() as conn:
-        row = conn.execute(text(
+    with engine.begin() as conn:
+        result = conn.execute(text(
             "INSERT INTO saved_preset (preset_name, filters_json) "
-            "VALUES (:name, :filters) "
-            "RETURNING preset_id, preset_name, filters_json, created_at, updated_at"
-        ), {"name": body.preset_name, "filters": body.filters_json}).mappings().one()
-        conn.commit()
+            "VALUES (:name, :filters)"
+        ), {"name": body.preset_name, "filters": body.filters_json})
+        new_id = result.lastrowid
+        row = conn.execute(text(
+            "SELECT preset_id, preset_name, filters_json, created_at, updated_at "
+            "FROM saved_preset WHERE preset_id = :id"
+        ), {"id": new_id}).mappings().one()
     return dict(row)
 
 
@@ -49,14 +52,16 @@ def create_preset(body: PresetBody):
 def update_preset(preset_id: int, body: PresetBody):
     _validate_filters_json(body.filters_json)
 
-    with engine.connect() as conn:
-        row = conn.execute(text(
+    with engine.begin() as conn:
+        conn.execute(text(
             "UPDATE saved_preset "
             "SET preset_name = :name, filters_json = :filters "
-            "WHERE preset_id = :id "
-            "RETURNING preset_id, preset_name, filters_json, created_at, updated_at"
-        ), {"id": preset_id, "name": body.preset_name, "filters": body.filters_json}).mappings().fetchone()
-        conn.commit()
+            "WHERE preset_id = :id"
+        ), {"id": preset_id, "name": body.preset_name, "filters": body.filters_json})
+        row = conn.execute(text(
+            "SELECT preset_id, preset_name, filters_json, created_at, updated_at "
+            "FROM saved_preset WHERE preset_id = :id"
+        ), {"id": preset_id}).mappings().fetchone()
 
     if not row:
         raise HTTPException(status_code=404, detail="Preset not found")
@@ -65,12 +70,11 @@ def update_preset(preset_id: int, body: PresetBody):
 
 @router.delete("/presets/{preset_id}")
 def delete_preset(preset_id: int):
-    with engine.connect() as conn:
-        row = conn.execute(text(
-            "DELETE FROM saved_preset WHERE preset_id = :id RETURNING preset_id"
-        ), {"id": preset_id}).fetchone()
-        conn.commit()
+    with engine.begin() as conn:
+        result = conn.execute(text(
+            "DELETE FROM saved_preset WHERE preset_id = :id"
+        ), {"id": preset_id})
 
-    if not row:
+    if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Preset not found")
     return {"deleted": True}
