@@ -343,29 +343,46 @@ def avg_arr_delay_by_carrier():
     return [dict(row) for row in rows]
 
 
+def _call_proc(dbapi_conn, sql: str) -> list[dict]:
+    # CALL leaves a trailing OK/status packet on the wire that pymysql doesn't
+    # auto-consume; the next query on this connection then fails with
+    # "Commands out of sync". Drop to the raw cursor so we can call .nextset()
+    # until it returns None, draining everything the proc emitted.
+    with dbapi_conn.cursor() as cursor:
+        cursor.execute(sql)
+        cols = [d[0] for d in cursor.description] if cursor.description else []
+        rows = [dict(zip(cols, row)) for row in cursor.fetchall()]
+        while cursor.nextset():
+            pass
+    return rows
+
+
 @router.get('/analysis/dashboard')
 def analysis_dashboard(limit_airports: int = 15, limit_routes: int = 10):
     # Stage 3 Q2 / Q3 live as stored procedures in db/init/004_procedures.sql
-    # (sp_busiest_airports, sp_top_delay_routes).
+    # (sp_busiest_airports, sp_top_delay_routes). Both CALLs run inside a
+    # single REPEATABLE READ transaction so both panels share a snapshot, and
+    # one row is appended to query_log on success.
     conn = engine.connect().execution_options(isolation_level='REPEATABLE READ')
     try:
         with conn.begin():
-            busy_all = conn.execute(text('CALL sp_busiest_airports()')).mappings().all()
-            route_rows = conn.execute(text('CALL sp_top_delay_routes()')).mappings().all()
+            dbapi_conn = conn.connection
+            busy_all = _call_proc(dbapi_conn, 'CALL sp_busiest_airports()')
+            route_rows = _call_proc(dbapi_conn, 'CALL sp_top_delay_routes()')
 
             # SP returns Origin and Destination interleaved; take top-N per role.
             origins = sorted(
-                (dict(r) for r in busy_all if r['role'] == 'Origin'),
+                (r for r in busy_all if r['role'] == 'Origin'),
                 key=lambda r: r['flight_count'], reverse=True,
             )[:limit_airports]
             dests = sorted(
-                (dict(r) for r in busy_all if r['role'] == 'Destination'),
+                (r for r in busy_all if r['role'] == 'Destination'),
                 key=lambda r: r['flight_count'], reverse=True,
             )[:limit_airports]
             busiest = origins + dests
 
-            # Retoractively apply LIMIT 15 in Python (so we don't flood the output page)
-            top_routes = [dict(r) for r in route_rows][:15]
+            # Retroactively apply LIMIT 15 in Python (so we don't flood the output page)
+            top_routes = route_rows[:15]
 
             conn.execute(
                 text('INSERT INTO query_log (row_count, heatmap_count) VALUES (:r, :h)'),
@@ -386,8 +403,8 @@ def carriers_above_average(min_flights: int = 100, limit: int = 15):
     # (db/init/004_procedures.sql)
     # LIMIT 15 retroactively applied (still, there are not even 15 results from this sp regardless)
     with engine.connect() as conn:
-        rows = conn.execute(text('CALL sp_carriers_above_avg_delay()')).mappings().all()
-    filtered = [dict(r) for r in rows if (r['total_flights'] or 0) >= min_flights]
+        rows = _call_proc(conn.connection, 'CALL sp_carriers_above_avg_delay()')
+    filtered = [r for r in rows if (r['total_flights'] or 0) >= min_flights]
     return filtered[:limit]
 
 
@@ -397,8 +414,7 @@ def carrier_tiers():
     # (db/init/004_procedures.sql). Cursor + IF/ELSEIF buckets carriers into
     # Excellent/Good/Average/Poor relative to the global avg arrival delay.
     with engine.connect() as conn:
-        rows = conn.execute(text('CALL sp_classify_carrier_delay_tiers()')).mappings().all()
-    return [dict(r) for r in rows]
+        return _call_proc(conn.connection, 'CALL sp_classify_carrier_delay_tiers()')
 
 
 def _resolve_tier_carriers(requested_tiers: list[str]) -> list[str]:
@@ -406,7 +422,7 @@ def _resolve_tier_carriers(requested_tiers: list[str]) -> list[str]:
     if not valid:
         return []
     with engine.connect() as conn:
-        rows = conn.execute(text('CALL sp_classify_carrier_delay_tiers()')).mappings().all()
+        rows = _call_proc(conn.connection, 'CALL sp_classify_carrier_delay_tiers()')
     return [r['carrier_name'] for r in rows if r['tier'] in valid]
 
 
