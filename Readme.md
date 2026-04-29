@@ -115,7 +115,7 @@ Install the following before running the project:
 
 - Docker Desktop  
 - Python 3.10+  
-- Node.js 20  
+- Node.js 22+  
 - npm (included with Node.js)  
 - Git  
 
@@ -152,7 +152,7 @@ docker compose up -d
 
 ```bash
 cd backend
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 cd ..
 ```
 
