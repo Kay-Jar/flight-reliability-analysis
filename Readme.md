@@ -12,11 +12,21 @@ Legacy Version: http://35.238.105.121:3000/#/heatmap (deploy/gcp-mysql branch)
 
 ---
 
+## Filtering Visualization Example
+
+This demonstrates how the application dynamically filters and updates flight data based on user input.
+
+| Before Filter | After Filter |
+|--------------|-------------|
+| ![Before Filter](images/PreFilter.PNG) | ![After Filter](images/PostFilter.PNG) |
+
+---
+
 ## Video Link
 
 https://drive.google.com/file/d/1EhQSBxosYcxledw47ajsMI7JrOGTz9b3/view 
 
---
+---
 
 ## Overview
 

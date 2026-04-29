@@ -68,7 +68,7 @@ In our final application, we did consider potentially adding some form of user a
 
 ### **Kayetan Jarzabek:**
 
-I worked on the proposal, schema design, and the initial tech stack setup from stages 1 and 2. I ensured the tech stack was installed and set up when working with our repo and I made sure the application was able to be deployed and run on GCP for our live demo.
+I worked on the proposal, schema design (drew out and proposed a star schema), and the initial tech stack setup for stages 1,2, and 4. I ensured the tech stack (Docker/Docker Compose, PostgreSQL, FastAPI (Python), and React/TypeScript) was installed and set up when working with our repo. I also researched and selected a React template (CoreUI) to help speed up our frontend development and UI integration. Also, I made sure the application was able to be deployed and run on GCP for our live (legacy) demo, verifying that our localized backend and frontend can run reliably in a cloud environment with a cloud database. 
 
 ### **Gokul Sriramasubramanian:**
 
@@ -80,4 +80,4 @@ I worked on the database design, database creation, query design, and web-app de
 
 ### **Rachel Li:**
 
-I worked on the initial proposal and the schema design. I also worked on setting up the frontend and completed a fair amount of pair programming with team members for additional support with the frontend.
+I worked on the initial proposal and the design of the relational schema, where research was completed to develop a STAR schema with team members. I also worked closely with team members to ensure that frontend tech stacks such as React/TypeScript were installed properly and researched UI templates from React (CoreUI) for seamless and efficient frontend programming.
