@@ -579,21 +579,6 @@ const AppSidebar = () => {
               <option value="raw_flights">Raw Flight Records</option>
             </CFormSelect>
           </div>
-
-          <div className="mb-4">
-            <CFormCheck
-              type="switch"
-              id="query-mode-switch"
-              label={queryMode === 'auto' ? 'Auto-query mode' : 'Manual query mode'}
-              checked={queryMode === 'auto'}
-              onChange={(event) => setQueryMode(event.target.checked ? 'auto' : 'manual')}
-            />
-            <div className="small text-medium-emphasis mt-1">
-              {queryMode === 'auto'
-                ? 'Results refresh automatically after filter changes.'
-                : 'Use Run Query on the analysis page.'}
-            </div>
-          </div>
         </CForm>
 
         <hr className="border-secondary my-3" />

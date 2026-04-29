@@ -417,9 +417,9 @@ const HeatmapPage = () => {
           <CButton color="primary" onClick={runQuery} disabled={isLoading}>
             {isLoading ? 'Loading...' : queryMode === 'auto' ? 'Refresh Now' : 'Run Query'}
           </CButton>
-          <span className="small text-medium-emphasis ms-3">
+          {/* <span className="small text-medium-emphasis ms-3">
             Mode: {queryMode === 'auto' ? 'Auto (debounced)' : 'Manual'}
-          </span>
+          </span> */}
 
           <div className="mt-4">
             <h2 className="h5 mb-3">Results</h2>
