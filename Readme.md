@@ -7,6 +7,7 @@ A full-stack data analytics platform for exploring U.S. flight delay patterns. T
 ## Live Demo
 
 Current: http://35.224.149.142/#/heatmap (deploy/gcp-mysql-v2 branch)
+
 Legacy Version: http://35.238.105.121:3000/#/heatmap (deploy/gcp-mysql branch)
 
 ---
