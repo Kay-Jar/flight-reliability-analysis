@@ -137,22 +137,10 @@ END //
 DELIMITER ;
 
 -- Transaction: dashboard "Load Snapshot" (Stage 3 Q2 + Q3 in one snapshot).
--- Issued by the GET /analysis/dashboard endpoint in backend/app/routes/analysis.py.
--- The endpoint binds a single connection, sets REPEATABLE READ, runs both
--- advanced reads (sp_busiest_airports, sp_top_delay_routes) so they share an
--- InnoDB consistent snapshot, appends one audit row to query_log, and commits.
--- If either CALL fails the INSERT is never reached and the transaction rolls
--- back, so query_log only ever reflects fully-successful dashboard loads.
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 START TRANSACTION;
 
 CALL sp_busiest_airports();
 CALL sp_top_delay_routes();
-
-INSERT INTO query_log (row_count, heatmap_count)
-VALUES (
-    :row_count,
-    :heatmap_count
-);
 
 COMMIT;

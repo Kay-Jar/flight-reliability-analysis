@@ -360,11 +360,11 @@ def _call_proc(dbapi_conn, sql: str) -> list[dict]:
 @router.get('/analysis/dashboard')
 def analysis_dashboard(limit_airports: int = 15, limit_routes: int = 10):
     # Implements the transaction documented in
-    # doc/TransactionTriggerConstraintsSP.sql verbatim: REPEATABLE READ
-    # snapshot, two CALL reads (Stage 3 Q2 + Q3), one audit INSERT into
-    # query_log, COMMIT. We issue START TRANSACTION / COMMIT as raw SQL on
-    # the underlying DBAPI connection so the wire-level commands mirror the
-    # doc instead of going through SQLAlchemy's transaction abstraction.
+    # doc/TransactionTriggerConstraintsSP.sql: REPEATABLE READ
+    # snapshot, two CALL reads (Stage 3 Q2 + Q3), COMMIT. The transaction
+    # is read-only; its purpose is to give both stored procedures a single
+    # consistent snapshot so the two dashboard panels reflect the
+    # same logical state of fact_flight even under concurrent writes.
     raw_conn = engine.raw_connection()
     try:
         with raw_conn.cursor() as cursor:
@@ -388,10 +388,6 @@ def analysis_dashboard(limit_airports: int = 15, limit_routes: int = 10):
                 # Retroactively apply LIMIT 15 in Python (so we don't flood the output page)
                 top_routes = route_rows[:15]
 
-                cursor.execute(
-                    'INSERT INTO query_log (row_count, heatmap_count) VALUES (%s, %s)',
-                    (len(busiest), len(top_routes)),
-                )
                 cursor.execute('COMMIT')
             except Exception:
                 try:
