@@ -59,7 +59,7 @@ Database (MySQL)
 
 ## Tech Stack
 
-### Frontend
+### Frontend 
 
 - React (Vite)  
 - CoreUI React Admin Template  
@@ -259,7 +259,8 @@ docker-compose.yml
 - The deployed system was adapted to MySQL for Cloud SQL compatibility  
 - Some SQL queries differ between PostgreSQL and MySQL implementations  
 - CORS is configured for cross-origin communication between frontend and backend  
-- Cloud deployment uses persistent processes managed via `screen`  
+- Cloud deployment uses persistent processes managed via `screen`
+- Generative AI was used to aid with frontend development
 
 ---
 
