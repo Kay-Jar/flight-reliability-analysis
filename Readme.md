@@ -115,7 +115,7 @@ Install the following before running the project:
 
 - Docker Desktop  
 - Python 3.10+  
-- Node.js 20  
+- Node.js 22+  
 - npm (included with Node.js)  
 - Git  
 
