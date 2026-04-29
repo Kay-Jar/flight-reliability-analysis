@@ -20,8 +20,8 @@
 |   Info      |        Description     |
 | ----------- | ---------------------- |
 |  Title      |       Flight Reliability Analysis Application (FRAA)     |
-| System URL  |      link_to_system    |
-| Video Link  |      link_to_video     |
+| System URL  |      http://35.224.149.142/#/heatmap    |
+| Video Link  |      https://drive.google.com/file/d/1EhQSBxosYcxledw47ajsMI7JrOGTz9b3/view     |
 
 ## Project Summary
 
