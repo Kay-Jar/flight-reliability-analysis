@@ -80,4 +80,4 @@ I worked on the database design, database creation, query design, and web-app de
 
 ### **Rachel Li:**
 
-I worked on the initial proposal and the schema design. I also worked on setting up the frontend and completed a fair amount of pair programming with team members for additional support with the frontend.
+I worked on the initial proposal and the design of the relational schema, where research was completed to develop a STAR schema with team members. I also worked closely with team members to ensure that frontend tech stacks such as React/TypeScript were installed properly and researched UI templates from React (CoreUI) for seamless and efficient frontend programming.
