@@ -70,7 +70,7 @@ Database (MySQL)
 ### Backend
 
 - FastAPI  
-- SQLAlchemy  
+- SQLAlchemy (bindparams & text only; did NOT use ORM capabilities)
 - PyMySQL  
 
 ### Infrastructure
