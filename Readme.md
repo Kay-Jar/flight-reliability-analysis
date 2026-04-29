@@ -152,7 +152,7 @@ docker compose up -d
 
 ```bash
 cd backend
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 cd ..
 ```
 
