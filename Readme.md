@@ -1,198 +1,99 @@
 # Flight Reliability Analysis Platform
 
-A full-stack data analytics platform for exploring U.S. flight delay patterns. The application provides interactive filtering, aggregation, and visualization of flight performance using a scalable backend and a modern React-based frontend. This application aims to solve the problem of having limited tools for efficiently analyzing and comparing aviation data across airlines, airports, and time periods.
+Full-stack data analytics platform for exploring U.S. flight delay patterns, built on the official Bureau of Transportation Statistics datasets (590K+ flight records, 2018–2025).
 
----
+The application lets users filter flights by airline, airport, and delay type, run dynamic analytical queries against a star-schema database, and explore the results through tables and heatmap visualizations. Analyses can be saved as named presets with full CRUD support.
 
 ## Live Demo
-
-Current: http://35.224.149.142/#/heatmap (deploy/gcp-mysql-v2 branch)
-
-Legacy Version: http://35.238.105.121:3000/#/heatmap (deploy/gcp-mysql branch)
-
----
-
-## Filtering Visualization Example
-
-This demonstrates how the application dynamically filters and updates flight data based on user input.
 
 | Before Filter | After Filter |
 |--------------|-------------|
 | ![Before Filter](images/PreFilter.PNG) | ![After Filter](images/PostFilter.PNG) |
 
----
+## Repository structure
 
-## Video Link
+```text
+.
+├── docker-compose.yml
+├── backend
+│   ├── requirements.txt
+│   └── app
+│       ├── main.py            # FastAPI app, CORS, health endpoints
+│       ├── db.py              # SQLAlchemy engine / DB URL builder
+│       └── routes
+│           ├── analysis.py    # filters, dashboard, dynamic query endpoints
+│           └── presets.py     # saved-preset CRUD
+├── frontend                   # React (CoreUI Admin Template, Vite)
+├── db
+│   ├── init
+│   │   ├── 001_schema.sql     # star schema (dims + facts)
+│   │   ├── 002_functions.sql  # functions + preset trigger
+│   │   ├── 003_indexes.sql
+│   │   └── 004_procedures.sql # analytical stored procedures
+│   └── loaders
+│       ├── load_dimensions.py
+│       └── load_facts.py
+├── DataSet                    # raw BTS / TranStats source data
+├── DataSet2                   # cleaned dim_*/fact_* CSVs
+├── doc                        # proposal, DB design, stage reports
+└── setup.md
+```
 
-https://drive.google.com/file/d/1EhQSBxosYcxledw47ajsMI7JrOGTz9b3/view 
+## What it does
 
----
-
-## Overview
-
-This project enables users to:
-
-- Filter flights by airline, airport, and delay type  
-- Execute dynamic analytical queries  
-- View aggregated metrics such as average arrival delay and total flights  
-- Explore results through tabular views and heatmap visualizations  
-
-The system supports both local development and cloud deployment.
-
----
+- Filters flights by marketing airline, operating airline, airport, and delay type
+- Builds and executes dynamic SQL from user-selected criteria (`POST /analysis/query`) with whitelisted metrics and table views — no raw SQL from the client
+- Aggregates metrics such as average arrival delay and total flights
+- Classifies carriers into performance tiers (Excellent / Good / Average / Poor) via a stored procedure
+- Saves, lists, updates, and deletes named analysis presets stored as JSON
+- Renders results as interactive heatmaps and summary tables
 
 ## Architecture
 
-- **Frontend**: React (CoreUI Admin Template, Vite)  
-- **Backend**: FastAPI with SQLAlchemy  
-- **Database**: MySQL (Cloud SQL or Dockerized locally)  
+- **Frontend**: React (CoreUI Free Admin Template, Vite), served on port `3000`
+- **Backend**: FastAPI + SQLAlchemy, served with uvicorn on port `8011`
+- **Database**: MySQL (Cloud SQL in deployment, Dockerized locally)
 
-```
-Frontend (React + CoreUI)
-↓ HTTP (REST API)
-Backend (FastAPI + SQLAlchemy)
-↓ SQL
-Database (MySQL)
-```
+The frontend talks to the backend through `API_BASE_URL` (see `frontend/src/config/api`). The backend builds parameterized queries with SQLAlchemy `text()` + `bindparam` against a star schema.
 
----
+## Data model
 
-## Tech Stack
+Star schema defined in `db/init/001_schema.sql`:
 
-### Frontend 
+- **Fact tables**: `fact_flight`, `fact_flight_delay`
+- **Dimension tables**: `dim_carrier`, `dim_airport`, `dim_date`, `dim_delay_type`, `dim_wac`
 
-- React (Vite)  
-- CoreUI React Admin Template  
-  https://github.com/coreui/coreui-free-react-admin-template  
-- Plotly (heatmap visualization)  
-  https://plotly.com/python/heatmaps/  
+Source data comes from the BTS On-Time Marketing dataset and TranStats support tables (carrier decode, airport coordinates, world area codes). Cleaned CSVs ready for loading live in `DataSet2/`.
 
-### Backend
+## Setup
 
-- FastAPI  
-- SQLAlchemy (bindparams & text only; did NOT use ORM capabilities)
-- PyMySQL  
-
-### Infrastructure
-
-- Google Cloud Compute Engine  
-- Google Cloud SQL (MySQL)  
-- Cloud SQL Proxy  
-- Docker (local development)  
-
----
-
-## Cloud Deployment (GCP - MySQL)
-
-The live system is deployed using:
-
-- Compute Engine VM  
-- Cloud SQL (MySQL)  
-- Cloud SQL Proxy  
-
-### Running Services
-
-| Service           | Port |
-|------------------|------|
-| Frontend         | 3000 |
-| Backend API      | 8080 |
-| Cloud SQL Proxy  | 3307 |
-
-The application is accessible via the VM external IP.
-
----
-
-## Project Structure
-
-```
-sp26-cs411-team028-blue
-├── backend/          # FastAPI application
-├── frontend/         # React + CoreUI frontend
-├── db/               # schema and data loaders
-├── docker-compose.yml
-└── README.md
-```
-
----
-
-## Local Setup Guide
-
-These instructions are for running the local Dockerized development version after cloning or unzipping the project.
-
-### Prerequisites
-
-Install the following before running the project:
-
-- Docker Desktop  
-- Python 3.10+  
-- Node.js 22+  
-- npm (included with Node.js)  
-- Git  
-
----
-
-### 1. Clone or Unzip the Project
-
-If cloning from GitHub:
-
-```bash
-git clone https://github.com/cs411-alawini/sp26-cs411-team028-blue.git
-cd sp26-cs411-team028-blue
-```
-
-If using a ZIP file, unzip it and navigate into the folder:
-
-```bash
-cd sp26-cs411-team028-blue
-```
-
----
-
-### 2. Start the Local Database
-
-Make sure Docker Desktop is running:
+### 1. Start the database (make sure Docker is running)
 
 ```bash
 docker compose up -d
 ```
 
----
+### 2. Load data (ORDER MATTERS!!)
 
-### 3. Install Backend Dependencies
-
-```bash
-cd backend
-python -m pip install -r requirements.txt
-cd ..
-```
-
----
-
-### 4. Load the Database
-
-Load dimension tables before fact tables:
+> You must load **dimension tables BEFORE fact tables.**
+> Loading facts first will result in **data loss due to cascading deletes** (learned that the hard way).
 
 ```bash
 python db/loaders/load_dimensions.py
 python db/loaders/load_facts.py
 ```
 
-Dimension tables must be loaded first because fact tables depend on them through foreign keys.
-
----
-
-### 5. Start the Backend
+### 3. Start the backend
 
 ```bash
 cd backend
+python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8011
 ```
 
----
+Port `8011` matches the frontend `API_BASE_URL` configuration — changing one means changing both.
 
-### 6. Start the Frontend
-
-Open a new terminal:
+### 4. Start the frontend (from a new terminal)
 
 ```bash
 cd frontend
@@ -200,58 +101,78 @@ npm install
 npm start
 ```
 
----
+Then open:
 
-### 7. Open the Application
-
+```
 http://localhost:3000
-
----
-
-## Dependency Requirements
-
-### Backend
-
-Dependencies are listed in:
-
-```
-backend/requirements.txt
 ```
 
-Install with:
+## Environment variables
 
-```bash
-pip install -r backend/requirements.txt
-```
+`backend/app/db.py` builds the connection string from:
 
----
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `DATABASE_URL` | — | Full SQLAlchemy URL; overrides everything below if set |
+| `DB_HOST` | `localhost` | |
+| `DB_PORT` | `3306` | MySQL |
+| `DB_NAME` | `flights` | |
+| `DB_USER` | `root` | |
+| `DB_PASSWORD` | (empty) | |
 
-### Frontend
+The engine is created with `pool_pre_ping=True` so stale Cloud SQL connections are recycled automatically.
 
-Dependencies are listed in:
+## API reference
 
-```
-frontend/package.json
-```
-
-Install with:
-
-```bash
-cd frontend
-npm install
-```
-
----
-
-### Database
-
-The local PostgreSQL database is managed via Docker:
+### Health
 
 ```
-docker-compose.yml
+GET  /health              -> {"status": "ok"}
+GET  /db-health           -> {"database": "connected"}
 ```
 
----
+### Filters (populate the sidebar dropdowns)
+
+```
+GET  /analysis/filters/airlines
+GET  /analysis/filters/op-airlines
+GET  /analysis/filters/airports
+GET  /analysis/filters/delay-types
+```
+
+### Analysis
+
+```
+GET  /avg-arr-delay-by-carrier
+GET  /analysis/dashboard
+GET  /analysis/carriers-above-average
+GET  /analysis/carrier-tiers
+POST /analysis/query      # dynamic query from filter selections
+```
+
+`POST /analysis/query` accepts airlines, op_airlines, airports, delay_types, tiers, a metric (`avg_arr_delay` | `total_flights`), and a table view (`carrier_summary` | `raw_flights`). Metrics and views are validated against server-side whitelists before any SQL is built.
+
+### Presets (CRUD)
+
+```
+GET    /presets
+POST   /presets
+PUT    /presets/{preset_id}
+DELETE /presets/{preset_id}
+```
+
+## Advanced SQL
+
+Defined in `db/init/` and documented in `doc/TransactionTriggerConstraintsSP.sql`:
+
+- **Stored procedures**: `sp_carriers_above_avg_delay()`, `sp_busiest_airports()`, `sp_top_delay_routes()`, `sp_classify_carrier_delay_tiers()`
+- **Trigger**: `trg_saved_preset_touch` — bumps `saved_preset.updated_at` on update, but only when the preset's name or filters actually changed (uses null-safe `<=>` comparison so no-op saves don't touch the timestamp)
+- **Indexes**: `003_indexes.sql` covers the common fact-table filter paths
+
+## Deployment
+
+Cloud deployments ran on GCP with Cloud SQL (MySQL) from the `deploy/gcp-mysql-v2` branch. Local development uses the Dockerized database plus the two dev servers
+
 
 ## Development Notes
 
@@ -262,7 +183,6 @@ docker-compose.yml
 - Cloud deployment uses persistent processes managed via `screen`
 - Generative AI was used to aid with frontend development
 
----
 
 ## Release and Submission
 
@@ -270,16 +190,28 @@ docker-compose.yml
 - Submissions are tied to specific commit hashes  
 - Releases represent frozen versions of the project for evaluation  
 
----
+
+## Troubleshooting (common issues we ran into as a team)
+
+### Data loads but queries return nothing / rows disappeared
+
+Check the load order!!! Facts reference dimensions with cascading deletes, so loading facts first silently destroys them. Re-run `load_dimensions.py` then `load_facts.py`.
+
+### Frontend shows empty dropdowns
+
+The frontend expects the backend on port `8011` (see the CORS allowlist in `backend/app/main.py`, which permits localhost ports 3000–3002). If uvicorn is running on a different port, update `API_BASE_URL` in the frontend config!!
+
 
 ## References
 
 - CoreUI React Admin Template ([GitHub](https://github.com/coreui/coreui-free-react-admin-template))  
 - Plotly Heatmaps ([Docs](https://plotly.com/python/heatmaps/))  
 
----
 
 ## License
 
 This project is released under the MIT License.  
 CoreUI template is also licensed under MIT.
+
+
+
