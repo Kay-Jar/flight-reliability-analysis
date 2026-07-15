@@ -52,9 +52,9 @@ The application lets users filter flights by airline, airport, and delay type, r
 
 - **Frontend**: React (CoreUI Free Admin Template, Vite), served on port `3000`
 - **Backend**: FastAPI + SQLAlchemy, served with uvicorn on port `8011`
-- **Database**: MySQL (Cloud SQL in deployment, Dockerized locally)
+- **Database**: MySQL (Cloud SQL) in deployment; `docker-compose.yml` still provisions the original PostgreSQL 16 database from early local development (see the note under Setup)
 
-The frontend talks to the backend through `API_BASE_URL` (see `frontend/src/config/api`). The backend builds parameterized queries with SQLAlchemy `text()` + `bindparam` against a star schema.
+The frontend talks to the backend through `API_BASE_URL` (see `frontend/src/config/api.js`), which defaults to `/api` — proxied to the backend by nginx in production and by the Vite dev server locally. The backend builds parameterized queries with SQLAlchemy `text()` + `bindparam` against a star schema.
 
 ## Data model
 
@@ -66,6 +66,15 @@ Star schema defined in `db/init/001_schema.sql`:
 Source data comes from the BTS On-Time Marketing dataset and TranStats support tables (carrier decode, airport coordinates, world area codes). Cleaned CSVs ready for loading live in `DataSet2/`.
 
 ## Setup
+
+> **Known issue — MySQL/PostgreSQL split.** The backend, its default connection
+> settings, and the SQL in `db/init/` target **MySQL** (what the deployed Cloud SQL
+> system runs), while `docker-compose.yml` and the loaders in `db/loaders/` still
+> target the original **PostgreSQL** stack. A fresh `docker compose up` will fail to
+> initialize because Postgres can't execute the MySQL-flavored init scripts, and the
+> backend's defaults (MySQL on `localhost:3306`) don't reach the Compose database.
+> Until the local stack is unified, point `DATABASE_URL` at a MySQL 8 instance
+> (e.g. the team Cloud SQL instance) to run the backend.
 
 ### 1. Start the database (make sure Docker is running)
 
@@ -91,7 +100,7 @@ python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8011
 ```
 
-Port `8011` matches the frontend `API_BASE_URL` configuration — changing one means changing both.
+Port `8011` matches the Vite dev-server proxy target — changing one means changing both (or override with `VITE_API_BASE_URL`).
 
 ### 4. Start the frontend (from a new terminal)
 
@@ -199,7 +208,7 @@ Check the load order!!! Facts reference dimensions with cascading deletes, so lo
 
 ### Frontend shows empty dropdowns
 
-The frontend expects the backend on port `8011` (see the CORS allowlist in `backend/app/main.py`, which permits localhost ports 3000–3002). If uvicorn is running on a different port, update `API_BASE_URL` in the frontend config!!
+In dev, API calls go to `/api/*` and the Vite dev server proxies them to `http://127.0.0.1:8011` (see `frontend/vite.config.mjs` and `frontend/src/config/api.js`). If uvicorn is running somewhere else, either update the proxy target or start the frontend with `VITE_API_BASE_URL=http://127.0.0.1:<port> npm start` (the CORS allowlist in `backend/app/main.py` permits localhost ports 3000–3002 for the direct cross-origin case).
 
 
 ## References

@@ -23,7 +23,7 @@ python db/loaders/load_facts.py
 ## Start backend
 ```bash
 cd backend
-python pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --port 8011
 ```
 
