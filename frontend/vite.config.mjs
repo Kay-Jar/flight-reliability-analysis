@@ -30,6 +30,14 @@ export default defineConfig(() => {
       port: 3000,
       proxy: {
         // https://vitejs.dev/config/server-options.html
+        // Mirror the production nginx setup (/api/* -> uvicorn, prefix stripped)
+        // so `npm start` works against a local backend without setting
+        // VITE_API_BASE_URL. See src/config/api.js.
+        '/api': {
+          target: 'http://127.0.0.1:8011',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
       },
     },
   }
